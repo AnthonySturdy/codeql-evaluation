@@ -67,7 +67,8 @@ void Game::Render()
         return;
     }
 
-    Clear();
+    // Bind render target to intermediate RenderTargetView
+    SetRenderTargetAndClear(m_rttRenderTargetView.Get(), m_rttDepthStencilView.Get());
 
     // Start the Dear ImGui frame
     ImGui_ImplDX11_NewFrame();
@@ -104,16 +105,33 @@ void Game::Render()
 
     m_gameObject->Render(m_d3dContext.Get());
 
+    // Bind render target to back buffer
+    SetRenderTargetAndClear(m_renderTargetView.Get(), m_depthStencilView.Get());
 
     // Render dockspace
     ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
-    //ImGui::Begin("Game Viewport");
-    //    //ImGui::Image(m_renderTargetView.Get(), ImGui::GetWindowSize());
-    //ImGui::End();
+    // Render content in ImGui window
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2());
+    ImGui::Begin("Viewport");
+    // Detect viewport window resize
+    ImVec2 curVpSize = ImGui::GetContentRegionAvail();
+    if (m_viewportSize.x != curVpSize.x || m_viewportSize.y != curVpSize.y) {
+        m_viewportSize = curVpSize;
+        OnViewportSizeChanged();
+    }
+
+    // Create SRV and render to ImGui window
+    ComPtr<ID3D11Resource> resource;
+    m_rttRenderTargetView->GetResource(resource.ReleaseAndGetAddressOf());
+    ComPtr<ID3D11ShaderResourceView> srv;
+    m_d3dDevice->CreateShaderResourceView(resource.Get(), nullptr, srv.GetAddressOf());
+    ImGui::Image(srv.Get(), m_viewportSize);
+    ImGui::End();
+    ImGui::PopStyleVar();
 
     // Render frames per second window
-    ImGui::Begin("FPS", (bool*)0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking);
+    ImGui::Begin("FPS", (bool*)0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Text("%.3fms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::End();
 
@@ -160,14 +178,15 @@ void Game::SetupLightsForRender() {
 }
 
 // Helper method to clear the back buffers.
-void Game::Clear()
+void Game::SetRenderTargetAndClear(ID3D11RenderTargetView* rtv, ID3D11DepthStencilView* dsv)
 {
     // Clear the views.
-    XMFLOAT3 clearColour = m_camera->GetBackgroundColour();
-    m_d3dContext->ClearRenderTargetView(m_renderTargetView.Get(), &clearColour.x);
-    m_d3dContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    XMFLOAT3 camBgCol = m_camera->GetBackgroundColour();
+    XMFLOAT4 clearColour = XMFLOAT4(camBgCol.x, camBgCol.y, camBgCol.z, 1.0f);
+    m_d3dContext->ClearRenderTargetView(rtv, &clearColour.x);
+    m_d3dContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-    m_d3dContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
+    m_d3dContext->OMSetRenderTargets(1, &rtv, dsv);
 
     // Set the viewport.
     CD3D11_VIEWPORT viewport(0.0f, 0.0f, static_cast<float>(m_outputWidth), static_cast<float>(m_outputHeight));
@@ -221,12 +240,17 @@ void Game::OnWindowSizeChanged(int width, int height)
     m_outputWidth = std::max(width, 1);
     m_outputHeight = std::max(height, 1);
 
-    if (m_camera) 
-        m_camera->SetAspectRatio(width / (float)height);
-
     CreateResources();
 
     // TODO: Game window is being resized.
+}
+
+void Game::OnViewportSizeChanged()
+{
+    if (m_camera)
+        m_camera->SetAspectRatio(m_viewportSize.x / (float)m_viewportSize.y);
+
+    CreateResources();
 }
 
 // Properties
@@ -396,6 +420,26 @@ void Game::CreateResources()
 
     CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
     DX::ThrowIfFailed(m_d3dDevice->CreateDepthStencilView(depthStencil.Get(), &depthStencilViewDesc, m_depthStencilView.ReleaseAndGetAddressOf()));
+
+    // Create intermediate render texture and depth stencil
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> rttTex;
+    D3D11_TEXTURE2D_DESC rttDesc = {};
+    rttDesc.Width = backBufferWidth;
+    rttDesc.Height = backBufferHeight;
+    rttDesc.MipLevels = 1;
+    rttDesc.ArraySize = 1;
+    rttDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    rttDesc.SampleDesc.Count = 1;
+    rttDesc.Usage = D3D11_USAGE_DEFAULT;
+    rttDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+    rttDesc.CPUAccessFlags = 0;
+    rttDesc.MiscFlags = 0;
+    DX::ThrowIfFailed(m_d3dDevice->CreateTexture2D(&rttDesc, nullptr, rttTex.GetAddressOf()));
+    DX::ThrowIfFailed(m_d3dDevice->CreateRenderTargetView(rttTex.Get(), nullptr, m_rttRenderTargetView.ReleaseAndGetAddressOf()));
+
+    ComPtr<ID3D11Texture2D> rttDepthStencil;
+    DX::ThrowIfFailed(m_d3dDevice->CreateTexture2D(&depthStencilDesc, nullptr, rttDepthStencil.GetAddressOf()));
+    DX::ThrowIfFailed(m_d3dDevice->CreateDepthStencilView(rttDepthStencil.Get(), &depthStencilViewDesc, m_rttDepthStencilView.ReleaseAndGetAddressOf()));
 
     // TODO: Initialize windows-size dependent objects here.
 }
