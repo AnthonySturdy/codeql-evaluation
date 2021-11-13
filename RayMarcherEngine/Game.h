@@ -43,8 +43,6 @@ private:
     void Update(DX::StepTimer const& timer);
     void Render();
 
-    void SetupLightsForRender();
-
     void SetRenderTargetAndClear(ID3D11RenderTargetView* rtv, ID3D11DepthStencilView* dsv);
     void Present();
 
@@ -85,5 +83,4 @@ private:
     std::shared_ptr<Camera> m_camera;
     std::shared_ptr<GameObject> m_gameObject;
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_constantBuffer;
-    Microsoft::WRL::ComPtr<ID3D11Buffer> m_lightConstantBuffer;
 };

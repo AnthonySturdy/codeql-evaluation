@@ -92,16 +92,11 @@ void Game::Render()
     cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
     m_d3dContext->UpdateSubresource(m_constantBuffer.Get(), 0, nullptr, &cb1, 0, 0);
 
-    SetupLightsForRender();
-
-    // Render the cube
+    // Render the quad
     m_d3dContext->VSSetShader(shader->GetVertexShader().Get(), nullptr, 0);
     m_d3dContext->VSSetConstantBuffers(0, 1, m_constantBuffer.GetAddressOf());
-
     m_d3dContext->PSSetShader(shader->GetPixelShader().Get(), nullptr, 0);
-    m_d3dContext->PSSetConstantBuffers(2, 1, m_lightConstantBuffer.GetAddressOf());
-    ID3D11Buffer* materialCB = m_gameObject->GetMaterialConstantBuffer();
-    m_d3dContext->PSSetConstantBuffers(1, 1, &materialCB);
+    m_d3dContext->PSSetConstantBuffers(0, 1, m_constantBuffer.GetAddressOf());
 
     m_gameObject->Render(m_d3dContext.Get());
 
@@ -153,28 +148,6 @@ void Game::Render()
 
     Present();
 
-}
-
-void Game::SetupLightsForRender() {
-    Light light;
-    light.Enabled = static_cast<int>(true);
-    light.LightType = PointLight;
-    light.Color = XMFLOAT4(Colors::White);
-    light.SpotAngle = XMConvertToRadians(45.0f);
-    light.ConstantAttenuation = 1.0f;
-    light.LinearAttenuation = .1f;
-    light.QuadraticAttenuation = 0.01f;
-
-    XMFLOAT4 LightPosition(0.0f, 4.0f, -4.0f, 1.0f);
-    light.Position = LightPosition;
-    XMVECTOR LightDirection = XMVectorSet(-LightPosition.x, -LightPosition.y, -LightPosition.z, 0.0f);
-    LightDirection = XMVector3Normalize(LightDirection);
-    XMStoreFloat4(&light.Direction, LightDirection);
-
-    LightPropertiesConstantBuffer lightProperties;
-    lightProperties.EyePosition = m_camera->GetCameraPosition();
-    lightProperties.Lights[0] = light;
-    m_d3dContext->UpdateSubresource(m_lightConstantBuffer.Get(), 0, nullptr, &lightProperties, 0, 0);
 }
 
 // Helper method to clear the back buffers.
@@ -479,15 +452,6 @@ void Game::CreateConstantBuffers() {
     HRESULT hr = m_d3dDevice->CreateBuffer(&bd, nullptr, m_constantBuffer.GetAddressOf());
     if (FAILED(hr))
         return;
-
-    // Create the light constant buffer
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(LightPropertiesConstantBuffer);
-    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    bd.CPUAccessFlags = 0;
-    hr = m_d3dDevice->CreateBuffer(&bd, nullptr, m_lightConstantBuffer.GetAddressOf());
-    if (FAILED(hr))
-        return;
 }
 
 void Game::CreateCameras(int width, int height) {
@@ -506,10 +470,7 @@ void Game::CreateGameObjects() {
     D3D11_INPUT_ELEMENT_DESC layout[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT , D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
     UINT numElements = ARRAYSIZE(layout);
     m_gameObject->InitShader(m_d3dDevice.Get(), L"VertexShader", L"PixelShader", layout, numElements);

@@ -7,10 +7,7 @@ cbuffer ConstantBuffer : register(b0) {
 
 struct VS_INPUT {
     float4 Pos : POSITION;
-    float3 Norm : NORMAL;
     float2 Tex : TEXCOORD0;
-    float3 Tan : TANGENT;
-    float3 Binorm : BINORMAL;
 };
 
 struct PS_INPUT {

@@ -13,9 +13,6 @@ public:
 private:
 	HRESULT InitialiseMeshData(ID3D11Device* device, ID3D11DeviceContext* context);
 
-	void PopulateBinormalTangent(std::vector<SimpleVertex>& vertices, const std::vector<WORD>& indices);
-	void CalculateTangentBinormal2(SimpleVertex v0, SimpleVertex v1, SimpleVertex v2, DirectX::XMFLOAT3& outNormal, DirectX::XMFLOAT3& outTangent, DirectX::XMFLOAT3& outBinormal);
-
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_vertexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_indexBuffer;
 };
