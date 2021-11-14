@@ -84,17 +84,31 @@ void Game::Render()
     // Set active vertex layout
     m_d3dContext->IASetInputLayout(shader->GetVertexLayout().Get());
 
-    // store this and the view / projection in a constant buffer for the vertex shader to use
+    // Update constant buffer
+    ConstantBuffer::WorldCamera cam;
+    cam.position[0] = m_camera->GetCameraPosition().x;
+    cam.position[1] = m_camera->GetCameraPosition().y;
+    cam.position[2] = m_camera->GetCameraPosition().z;
+    cam.fov = m_camera->GetFOV();
+    cam.cameraType = (int)m_camera->GetCameraType();
+    cam.resolution[0] = m_viewportSize.x;
+    cam.resolution[1] = m_viewportSize.y;
+    cam.view = m_camera->CalculateViewMatrix();
+
+    ConstantBuffer::WorldObject obj;
+    obj.position[0] = 0.0f;
+    obj.position[1] = 0.0f;
+    obj.position[2] = 5.0f;
+    obj.radius = 1.0f;
+
     ConstantBuffer cb1;
-    cb1.mWorld = XMMatrixTranspose(mGO);
-    cb1.mView = XMMatrixTranspose(m_camera->CalculateViewMatrix());
-    cb1.mProjection = XMMatrixTranspose(m_camera->CalculateProjectionMatrix());
-    cb1.vOutputColor = XMFLOAT4(0, 0, 0, 0);
+    cb1.camera = cam;
+    cb1.object = obj;
+    
     m_d3dContext->UpdateSubresource(m_constantBuffer.Get(), 0, nullptr, &cb1, 0, 0);
 
     // Render the quad
     m_d3dContext->VSSetShader(shader->GetVertexShader().Get(), nullptr, 0);
-    m_d3dContext->VSSetConstantBuffers(0, 1, m_constantBuffer.GetAddressOf());
     m_d3dContext->PSSetShader(shader->GetPixelShader().Get(), nullptr, 0);
     m_d3dContext->PSSetConstantBuffers(0, 1, m_constantBuffer.GetAddressOf());
 
@@ -109,19 +123,19 @@ void Game::Render()
     // Render content in ImGui window
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2());
     ImGui::Begin("Viewport");
-    // Detect viewport window resize
-    ImVec2 curVpSize = ImGui::GetContentRegionAvail();
-    if (m_viewportSize.x != curVpSize.x || m_viewportSize.y != curVpSize.y) {
-        m_viewportSize = curVpSize;
-        OnViewportSizeChanged();
-    }
+        // Detect viewport window resize
+        ImVec2 curVpSize = ImGui::GetContentRegionAvail();
+        if (m_viewportSize.x != curVpSize.x || m_viewportSize.y != curVpSize.y) {
+            m_viewportSize = curVpSize;
+            OnViewportSizeChanged();
+        }
 
-    // Create SRV and render to ImGui window
-    ComPtr<ID3D11Resource> resource;
-    m_rttRenderTargetView->GetResource(resource.ReleaseAndGetAddressOf());
-    ComPtr<ID3D11ShaderResourceView> srv;
-    m_d3dDevice->CreateShaderResourceView(resource.Get(), nullptr, srv.GetAddressOf());
-    ImGui::Image(srv.Get(), m_viewportSize);
+        // Create SRV and render to ImGui window
+        ComPtr<ID3D11Resource> resource;
+        m_rttRenderTargetView->GetResource(resource.ReleaseAndGetAddressOf());
+        ComPtr<ID3D11ShaderResourceView> srv;
+        m_d3dDevice->CreateShaderResourceView(resource.Get(), nullptr, srv.GetAddressOf());
+        ImGui::Image(srv.Get(), m_viewportSize);
     ImGui::End();
     ImGui::PopStyleVar();
 
@@ -456,7 +470,7 @@ void Game::CreateConstantBuffers() {
 
 void Game::CreateCameras(int width, int height) {
     // Create camera
-    m_camera = std::make_shared<Camera>(XMFLOAT4(-4.0f, 4.0f, -4.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f),
+    m_camera = std::make_shared<Camera>(XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 5.0f, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f),
                                         Camera::CAMERA_TYPE::PERSPECTIVE,
                                         width / (float)height,
                                         DirectX::XM_PIDIV2,

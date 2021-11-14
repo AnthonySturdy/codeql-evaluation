@@ -7,6 +7,11 @@ Camera::Camera(DirectX::XMFLOAT4 position, DirectX::XMFLOAT4 lookAt, DirectX::XM
 
 Camera::~Camera() { }
 
+void Camera::SetCameraType(CAMERA_TYPE val)
+{
+	m_CameraType = val;
+}
+
 void Camera::SetCameraPosition(DirectX::XMFLOAT4 val) {
 	m_Position = val;
 }
@@ -48,7 +53,7 @@ void Camera::RenderGUIControls() {
 		ImGui::SliderAngle("FOV", &m_FOV, 5.0f, 160.0f);
 
 		const char* items[] = { "Orthographic", "Perspective" };
-		static int selection = 1;
+		int selection = (int)m_CameraType;
 		ImGui::Combo("Camera Type", &selection, items, 2);
 		m_CameraType = (CAMERA_TYPE)selection;
 
@@ -65,23 +70,4 @@ DirectX::XMMATRIX Camera::CalculateViewMatrix() {
 	DirectX::XMVECTOR up = DirectX::XMLoadFloat4(&m_Up);
 
 	return DirectX::XMMatrixLookAtLH(eye, at, up);
-}
-
-DirectX::XMMATRIX Camera::CalculateProjectionMatrix() {
-	float orthoScale = 10.0f;
-
-	switch (m_CameraType) {
-	case CAMERA_TYPE::ORTHOGRAPHIC:
-		return DirectX::XMMatrixOrthographicLH(m_FOV * m_AspectRatio * orthoScale, m_FOV * orthoScale, m_NearPlane, m_FarPlane);
-		break;
-
-	case CAMERA_TYPE::PERSPECTIVE:
-		return DirectX::XMMatrixPerspectiveFovLH(m_FOV, m_AspectRatio, m_NearPlane, m_FarPlane);
-		break;
-
-	default:
-		std::cout << "ERROR: Invalid Camera Type!" << std::endl;
-		return DirectX::XMMATRIX();
-		break;
-	}
 }

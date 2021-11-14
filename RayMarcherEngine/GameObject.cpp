@@ -38,7 +38,7 @@ void GameObject::Update(float t, ID3D11DeviceContext* context) {
 
 void GameObject::Render(ID3D11DeviceContext* context) {
 	ID3D11Buffer* vertexBuf = m_mesh->GetVertexBuffer();
-	UINT stride = sizeof(SimpleVertex);
+	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 	context->IASetVertexBuffers(0, 1, &vertexBuf, &stride, &offset);
 	context->IASetIndexBuffer(m_mesh->GetIndexBuffer(), DXGI_FORMAT_R16_UINT, 0);

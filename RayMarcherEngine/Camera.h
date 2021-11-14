@@ -22,6 +22,7 @@ public:
 	Camera(DirectX::XMFLOAT4 position, DirectX::XMFLOAT4 lookAt, DirectX::XMFLOAT4 up, CAMERA_TYPE cameraType, float aspectRatio, float fov, float nearPlane, float farPlane);
 	~Camera();
 
+	CAMERA_TYPE GetCameraType() { return m_CameraType; }
 	DirectX::XMFLOAT4 GetCameraPosition() { return m_Position; }
 	DirectX::XMFLOAT4 GetCameraLookAt() { return m_LookAt; }
 	DirectX::XMFLOAT4 GetCameraUp() { return m_Up; }
@@ -31,8 +32,8 @@ public:
 	DirectX::XMFLOAT3 GetBackgroundColour() { return m_BackgroundColour; }
 
 	DirectX::XMMATRIX CalculateViewMatrix();
-	DirectX::XMMATRIX CalculateProjectionMatrix();
 
+	void SetCameraType(CAMERA_TYPE val);
 	void SetCameraPosition(DirectX::XMFLOAT4 val);
 	void SetCameraLookAt(DirectX::XMFLOAT4 val);
 	void SetCameraUp(DirectX::XMFLOAT4 val);

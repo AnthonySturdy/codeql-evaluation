@@ -13,7 +13,7 @@ Mesh::~Mesh() {
 
 HRESULT Mesh::InitialiseMeshData(ID3D11Device* device, ID3D11DeviceContext* context) {
 	// Create vertices and indices
-	std::vector<SimpleVertex> vertices =
+	std::vector<Vertex> vertices =
 	{
 		{ XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f) },
 		{ XMFLOAT3(1.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f) },
@@ -30,7 +30,7 @@ HRESULT Mesh::InitialiseMeshData(ID3D11Device* device, ID3D11DeviceContext* cont
 	// Create vertex buffer
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(SimpleVertex) * vertices.size();
+	bd.ByteWidth = sizeof(Vertex) * vertices.size();
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bd.CPUAccessFlags = 0;
 
