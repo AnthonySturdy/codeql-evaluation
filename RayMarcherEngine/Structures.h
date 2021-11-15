@@ -7,12 +7,19 @@ struct Vertex {
 };
 
 struct ConstantBuffer {
+	struct RenderSettings {
+		unsigned int maxSteps;
+		float maxDist;
+		float intersectionThreshold;
+		float PADDING;			// 16 bytes
+	} renderSettings;
+
 	struct WorldCamera {
 		float fov;
 		float position[3];		// 16 bytes
 		float resolution[2];
 		BOOL cameraType;
-		float padding;			// 32 bytes
+		float PADDING;			// 32 bytes
 		DirectX::XMMATRIX view; // 48 Bytes
 	} camera;
 

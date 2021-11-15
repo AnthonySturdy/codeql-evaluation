@@ -34,8 +34,8 @@ void Game::Initialise(HWND window, int width, int height)
     
     CreateGameObjects();
 
-    m_timer.SetFixedTimeStep(true);
-    m_timer.SetTargetElapsedSeconds(1.0 / 60);
+    //m_timer.SetFixedTimeStep(true);
+    //m_timer.SetTargetElapsedSeconds(1.0 / 60);
 }
 
 // Executes the basic game loop.
@@ -75,6 +75,9 @@ void Game::Render()
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
+    // Create ImGui dockspace
+    ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+
     // get the game object world transform
     XMMATRIX mGO = XMLoadFloat4x4(m_gameObject->GetTransform());
 
@@ -85,7 +88,14 @@ void Game::Render()
     m_d3dContext->IASetInputLayout(shader->GetVertexLayout().Get());
 
     // Update constant buffer
-    ConstantBuffer::WorldCamera cam;
+    static ConstantBuffer::RenderSettings rs;
+    ImGui::Begin("Scene Controls", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::DragInt("Max Steps", (int*)&rs.maxSteps, 1.0f, 1, 1000);
+        ImGui::DragFloat("Max Dist", &rs.maxDist, .5f, 1.0f, 10000.0f);
+        ImGui::DragFloat("Threshold", &rs.intersectionThreshold, 0.0001f, 0.0001f, 0.3f);
+    ImGui::End();
+
+    static ConstantBuffer::WorldCamera cam;
     cam.position[0] = m_camera->GetCameraPosition().x;
     cam.position[1] = m_camera->GetCameraPosition().y;
     cam.position[2] = m_camera->GetCameraPosition().z;
@@ -95,13 +105,14 @@ void Game::Render()
     cam.resolution[1] = m_viewportSize.y;
     cam.view = m_camera->CalculateViewMatrix();
 
-    ConstantBuffer::WorldObject obj;
-    obj.position[0] = 0.0f;
-    obj.position[1] = 0.0f;
-    obj.position[2] = 5.0f;
+    static ConstantBuffer::WorldObject obj;
+    obj.position[0] = 3.0f;
+    obj.position[1] = 3.0f;
+    obj.position[2] = 0.0f;
     obj.radius = 1.0f;
 
     ConstantBuffer cb1;
+    cb1.renderSettings = rs;
     cb1.camera = cam;
     cb1.object = obj;
     
@@ -117,10 +128,7 @@ void Game::Render()
     // Bind render target to back buffer
     SetRenderTargetAndClear(m_renderTargetView.Get(), m_depthStencilView.Get());
 
-    // Render dockspace
-    ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
-
-    // Render content in ImGui window
+    // Create content in ImGui window
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2());
     ImGui::Begin("Viewport");
         // Detect viewport window resize
@@ -139,7 +147,7 @@ void Game::Render()
     ImGui::End();
     ImGui::PopStyleVar();
 
-    // Render frames per second window
+    // Create frames per second window
     ImGui::Begin("FPS", (bool*)0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Text("%.3fms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::End();
@@ -470,10 +478,10 @@ void Game::CreateConstantBuffers() {
 
 void Game::CreateCameras(int width, int height) {
     // Create camera
-    m_camera = std::make_shared<Camera>(XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 5.0f, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f),
+    m_camera = std::make_shared<Camera>(XMFLOAT4(0.0f, 3.0f, 5.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f),
                                         Camera::CAMERA_TYPE::PERSPECTIVE,
                                         width / (float)height,
-                                        DirectX::XM_PIDIV2,
+                                        XMConvertToRadians(65.0f),
                                         0.01f, 100.0f);
 }
 
