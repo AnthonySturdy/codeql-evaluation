@@ -106,17 +106,35 @@ void Game::Render()
     cam.view = m_camera->CalculateViewMatrix();
 
     static ConstantBuffer::WorldObject obj;
-    obj.position[0] = 3.0f;
-    obj.position[1] = 3.0f;
+    obj.isActive = true;
+    obj.position[0] = 0.0f;
+    obj.position[1] = 0.0f;
     obj.position[2] = 0.0f;
-    obj.radius = 1.0f;
+    obj.objectType = 0;
+    obj.params[0] = 2.0f;
+
+    static ConstantBuffer::WorldObject obj1;
+    obj1.isActive = true;
+    obj1.position[0] = 0.0f;
+    obj1.position[1] = 5.0f;
+    obj1.position[2] = 0.0f;
+    obj1.objectType = 2;
+    obj1.params[0] = 2.0f;
+    obj1.params[1] = 0.5f;
+    obj1.params[2] = 3.0f;
 
     ConstantBuffer cb1;
     cb1.renderSettings = rs;
     cb1.camera = cam;
-    cb1.object = obj;
+    cb1.object[0] = obj;
+    cb1.object[1] = obj1;
     
-    m_d3dContext->UpdateSubresource(m_constantBuffer.Get(), 0, nullptr, &cb1, 0, 0);
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+    m_d3dContext->Map(m_constantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    memcpy(mappedResource.pData, &cb1, sizeof(ConstantBuffer));
+    //m_d3dContext->UpdateSubresource(m_constantBuffer.Get(), 0, nullptr, &cb1, 0, 0);
+    m_d3dContext->Unmap(m_constantBuffer.Get(), 0);
 
     // Render the quad
     m_d3dContext->VSSetShader(shader->GetVertexShader().Get(), nullptr, 0);
@@ -194,7 +212,7 @@ void Game::Present()
     // The first argument instructs DXGI to block until VSync, putting the application
     // to sleep until the next VSync. This ensures we don't waste any cycles rendering
     // frames that will never be displayed to the screen.
-    HRESULT hr = m_swapChain->Present(1, 0);
+    HRESULT hr = m_swapChain->Present(0, 0);
 
     // If the device was reset we must completely reinitialize the renderer.
     if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
@@ -467,10 +485,10 @@ void Game::InitialiseImGui(HWND hwnd)
 void Game::CreateConstantBuffers() {
     // Create the constant buffer
     D3D11_BUFFER_DESC bd = {};
-    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.Usage = D3D11_USAGE_DYNAMIC;
     bd.ByteWidth = sizeof(ConstantBuffer);
     bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    bd.CPUAccessFlags = 0;
+    bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     HRESULT hr = m_d3dDevice->CreateBuffer(&bd, nullptr, m_constantBuffer.GetAddressOf());
     if (FAILED(hr))
         return;
@@ -478,7 +496,7 @@ void Game::CreateConstantBuffers() {
 
 void Game::CreateCameras(int width, int height) {
     // Create camera
-    m_camera = std::make_shared<Camera>(XMFLOAT4(0.0f, 3.0f, 5.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f),
+    m_camera = std::make_shared<Camera>(XMFLOAT4(0.0f, 1.0f, 5.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f),
                                         Camera::CAMERA_TYPE::PERSPECTIVE,
                                         width / (float)height,
                                         XMConvertToRadians(65.0f),
