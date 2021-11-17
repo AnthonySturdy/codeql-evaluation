@@ -6,8 +6,7 @@ struct PS_INPUT {
 };
 
 cbuffer ConstantBuffer : register(b0) {
-    struct RenderSettings
-    {
+    struct RenderSettings {
         unsigned int maxSteps;
         float maxDist;
         float intersectionThreshold;
@@ -138,13 +137,14 @@ Ray RayMarch(float3 ro, float3 rd) {
 
 
 float4 PS(PS_INPUT IN) : SV_TARGET {
-    float aspectRatio = camera.resolution.x / (float)camera.resolution.y;
-    float2 uv = (IN.Tex - 0.5f) * 2.0f;
-    uv.x *= aspectRatio;
+    const float aspectRatio = camera.resolution.x / (float)camera.resolution.y;
+    float2 uv = IN.Tex;
     uv.y = 1.0f - uv.y;
+    uv = uv * 2.0f - 1.0f;
+    uv.x *= aspectRatio;
     
     float3 ro = camera.position;    // Ray origin
-    float3 rd = normalize(mul(float3(uv * camera.fov, 1.0f), (float3x4)camera.view)); // Ray direction
+    float3 rd = normalize(mul(camera.view, float4(uv, tan(camera.fov), 0.0f)).xyz); // Ray direction
 
     float4 finalColour = float4(rd * .5 + .5, 1.0f); // Sky color
     Ray ray = RayMarch(ro, rd);

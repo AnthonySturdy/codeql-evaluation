@@ -69,5 +69,5 @@ DirectX::XMMATRIX Camera::CalculateViewMatrix() {
 	DirectX::XMVECTOR at = DirectX::XMLoadFloat4(&m_LookAt);
 	DirectX::XMVECTOR up = DirectX::XMLoadFloat4(&m_Up);
 
-	return DirectX::XMMatrixLookAtLH(eye, at, up);
+	return DirectX::XMMatrixLookToLH(eye, at, up);
 }
