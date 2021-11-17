@@ -2,7 +2,7 @@
 #include "Camera.h"
 
 Camera::Camera(DirectX::XMFLOAT4 position, DirectX::XMFLOAT4 lookAt, DirectX::XMFLOAT4 up, CAMERA_TYPE cameraType, float aspectRatio, float fov, float nearPlane, float farPlane) :
-	m_Position(position), m_LookAt(lookAt), m_Up(up), m_CameraType(cameraType), m_AspectRatio(aspectRatio), m_FOV(fov), m_NearPlane(nearPlane), m_FarPlane(farPlane), m_BackgroundColour(DirectX::Colors::MidnightBlue)
+	m_Position(position), m_LookTo(lookAt), m_Up(up), m_CameraType(cameraType), m_AspectRatio(aspectRatio), m_FOV(fov), m_NearPlane(nearPlane), m_FarPlane(farPlane), m_BackgroundColour(DirectX::Colors::MidnightBlue)
 { }
 
 Camera::~Camera() { }
@@ -16,8 +16,8 @@ void Camera::SetCameraPosition(DirectX::XMFLOAT4 val) {
 	m_Position = val;
 }
 
-void Camera::SetCameraLookAt(DirectX::XMFLOAT4 val) {
-	m_LookAt = val;
+void Camera::SetCameraLookTo(DirectX::XMFLOAT4 val) {
+	m_LookTo = val;
 }
 
 void Camera::SetCameraUp(DirectX::XMFLOAT4 val) {
@@ -47,7 +47,17 @@ void Camera::SetAspectRatio(float val) {
 void Camera::RenderGUIControls() {
 	if (ImGui::CollapsingHeader("Active Camera Controls")) {
 		ImGui::DragFloat3("Eye", &m_Position.x, 0.015f);
-		ImGui::DragFloat3("LookAt", &m_LookAt.x, 0.015f);
+		
+		ImGui::Columns(2, 0, false);
+			ImGui::SetColumnWidth(ImGui::GetColumnIndex(), ImGui::GetWindowWidth() / 3);
+			vec3 lt = vec3(m_LookTo.x, m_LookTo.y, m_LookTo.z);
+			if (ImGui::gizmo3D("LookTo", lt, ImGui::GetContentRegionAvailWidth(), imguiGizmo::modeDirection)) 
+				m_LookTo = DirectX::XMFLOAT4(lt.x, lt.y, lt.z, m_LookTo.z);
+			ImGui::NextColumn();
+			ImGui::DragFloat3("LookAt", &m_LookTo.x, 0.015f);
+			ImGui::Text("LookTo:\n%f\n%f\n%f", lt.x, lt.y, lt.z);
+		ImGui::Columns();
+
 		ImGui::DragFloat3("Up", &m_Up.x, 0.005f);
 
 		ImGui::SliderAngle("FOV", &m_FOV, 5.0f, 160.0f);
@@ -66,7 +76,7 @@ void Camera::RenderGUIControls() {
 
 DirectX::XMMATRIX Camera::CalculateViewMatrix() {
 	DirectX::XMVECTOR eye = DirectX::XMLoadFloat4(&m_Position);
-	DirectX::XMVECTOR at = DirectX::XMLoadFloat4(&m_LookAt);
+	DirectX::XMVECTOR at = DirectX::XMLoadFloat4(&m_LookTo);
 	DirectX::XMVECTOR up = DirectX::XMLoadFloat4(&m_Up);
 
 	return DirectX::XMMatrixLookToLH(eye, at, up);

@@ -10,7 +10,7 @@ private:
 	CAMERA_TYPE m_CameraType;
 
 	DirectX::XMFLOAT4 m_Position;
-	DirectX::XMFLOAT4 m_LookAt;
+	DirectX::XMFLOAT4 m_LookTo;
 	DirectX::XMFLOAT4 m_Up;
 	float m_FOV;
 	float m_AspectRatio;
@@ -24,7 +24,7 @@ public:
 
 	CAMERA_TYPE GetCameraType() { return m_CameraType; }
 	DirectX::XMFLOAT4 GetCameraPosition() { return m_Position; }
-	DirectX::XMFLOAT4 GetCameraLookAt() { return m_LookAt; }
+	DirectX::XMFLOAT4 GetCameraLookAt() { return m_LookTo; }
 	DirectX::XMFLOAT4 GetCameraUp() { return m_Up; }
 	float GetFOV() { return m_FOV; }
 	float GetNearPlane() { return m_NearPlane; }
@@ -35,7 +35,7 @@ public:
 
 	void SetCameraType(CAMERA_TYPE val);
 	void SetCameraPosition(DirectX::XMFLOAT4 val);
-	void SetCameraLookAt(DirectX::XMFLOAT4 val);
+	void SetCameraLookTo(DirectX::XMFLOAT4 val);
 	void SetCameraUp(DirectX::XMFLOAT4 val);
 	void SetFOV(float val);
 	void SetNearPlane(float val);
