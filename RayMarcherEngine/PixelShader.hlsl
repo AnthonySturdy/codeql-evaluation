@@ -68,7 +68,7 @@ float sdSphere(float3 p, float s)
     return length(p) - s;
 }
 
-float GetDistanceToScene(float3 p) {
+float GetDistanceToScene(float3 p, out int index) {
    float dist = renderSettings.maxDist;
    int objIndex = 0;
     
@@ -83,8 +83,12 @@ float GetDistanceToScene(float3 p) {
         dists[3] = sdCone(p - object[i].position, object[i].params.x, object[i].params.y);
         dists[4] = sdCappedCylinder(p - object[i].position, object[i].params.x, object[i].params.y);
 
+        float prevDist = dist;
         dist = min(dist, dists[object[i].objectType]);
+        objIndex = lerp(objIndex, i, prevDist != dist);
     }
+    
+    index = objIndex;
     
     return dist;
 }
@@ -92,9 +96,10 @@ float GetDistanceToScene(float3 p) {
 float3 CalculateNormal(float3 p) {
     const float3 offset = float3(0.001f, 0.0f, 0.0f);
 
-    float3 normal = float3(GetDistanceToScene(p + offset.xyy) - GetDistanceToScene(p - offset.xyy),
-                           GetDistanceToScene(p + offset.yxy) - GetDistanceToScene(p - offset.yxy),
-                           GetDistanceToScene(p + offset.yyx) - GetDistanceToScene(p - offset.yyx));
+    int index;
+    float3 normal = float3(GetDistanceToScene(p + offset.xyy, index) - GetDistanceToScene(p - offset.xyy, index),
+                           GetDistanceToScene(p + offset.yxy, index) - GetDistanceToScene(p - offset.yxy, index),
+                           GetDistanceToScene(p + offset.yyx, index) - GetDistanceToScene(p - offset.yyx, index));
 
     return normalize(normal);
 }
@@ -112,12 +117,14 @@ Ray RayMarch(float3 ro, float3 rd) {
     // Step along ray direction
     float depth = 0.0f;
     for (uint i = 0; i < renderSettings.maxSteps; ++i) {
-        float curDist = GetDistanceToScene(ro + rd * depth);
+        int index;
+        float curDist = GetDistanceToScene(ro + rd * depth, index);
         
         // If distance less than threshold, ray has intersected
         if (curDist < renderSettings.intersectionThreshold)
         {
             ray.hit = true;
+            ray.hitObjectIndex = ceil(index);
             ray.hitPosition = ro + rd * depth;
             ray.hitNormal = CalculateNormal(ray.hitPosition);
             ray.depth = depth;
@@ -139,9 +146,9 @@ Ray RayMarch(float3 ro, float3 rd) {
 float4 PS(PS_INPUT IN) : SV_TARGET {
     const float aspectRatio = camera.resolution.x / (float)camera.resolution.y;
     float2 uv = IN.Tex;
-    uv.y = 1.0f - uv.y;
-    uv = uv * 2.0f - 1.0f;
-    uv.x *= aspectRatio;
+    uv.y = 1.0f - uv.y;     // Flip UV on Y axis
+    uv = uv * 2.0f - 1.0f;  // Move UV to (-1, 1) range
+    uv.x *= aspectRatio;    // Apply viewport aspect ratio
     
     float3 ro = camera.position;    // Ray origin
     float3 rd = normalize(mul(transpose(camera.view), float4(uv, tan(camera.fov), 0.0f)).xyz); // Ray direction

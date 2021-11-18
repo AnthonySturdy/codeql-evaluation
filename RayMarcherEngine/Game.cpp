@@ -123,11 +123,22 @@ void Game::Render()
     obj1.params[1] = 0.5f;
     obj1.params[2] = 3.0f;
 
+    static ConstantBuffer::WorldObject obj2;
+    obj2.isActive = true;
+    obj2.position[0] = 0.0f;
+    obj2.position[1] = 2.0f;
+    obj2.position[2] = 0.0f;
+    obj2.objectType = 4;
+    obj2.params[0] = 2.0f;
+    obj2.params[1] = 0.5f;
+    obj2.params[2] = 3.0f;
+
     ConstantBuffer cb1;
     cb1.renderSettings = rs;
     cb1.camera = cam;
     cb1.object[0] = obj;
     cb1.object[1] = obj1;
+    cb1.object[2] = obj2;
     
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
