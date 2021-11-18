@@ -47,17 +47,7 @@ void Camera::SetAspectRatio(float val) {
 void Camera::RenderGUIControls() {
 	if (ImGui::CollapsingHeader("Active Camera Controls")) {
 		ImGui::DragFloat3("Eye", &m_Position.x, 0.015f);
-		
-		ImGui::Columns(2, 0, false);
-			ImGui::SetColumnWidth(ImGui::GetColumnIndex(), ImGui::GetWindowWidth() / 3);
-			vec3 lt = vec3(m_LookTo.x, m_LookTo.y, m_LookTo.z);
-			if (ImGui::gizmo3D("LookTo", lt, ImGui::GetContentRegionAvailWidth(), imguiGizmo::modeDirection)) 
-				m_LookTo = DirectX::XMFLOAT4(lt.x, lt.y, lt.z, m_LookTo.z);
-			ImGui::NextColumn();
-			ImGui::DragFloat3("LookAt", &m_LookTo.x, 0.015f);
-			ImGui::Text("LookTo:\n%f\n%f\n%f", lt.x, lt.y, lt.z);
-		ImGui::Columns();
-
+		ImGui::DragFloat3("LookAt", &m_LookTo.x, 0.015f);
 		ImGui::DragFloat3("Up", &m_Up.x, 0.005f);
 
 		ImGui::SliderAngle("FOV", &m_FOV, 5.0f, 160.0f);
@@ -79,5 +69,5 @@ DirectX::XMMATRIX Camera::CalculateViewMatrix() {
 	DirectX::XMVECTOR at = DirectX::XMLoadFloat4(&m_LookTo);
 	DirectX::XMVECTOR up = DirectX::XMLoadFloat4(&m_Up);
 
-	return DirectX::XMMatrixLookToLH(eye, at, up);
+	return DirectX::XMMatrixLookAtLH(eye, at, up);
 }
