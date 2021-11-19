@@ -45,23 +45,11 @@ void Camera::SetAspectRatio(float val) {
 }
 
 void Camera::RenderGUIControls() {
-	if (ImGui::CollapsingHeader("Active Camera Controls")) {
-		ImGui::DragFloat3("Eye", &m_Position.x, 0.015f);
-		ImGui::DragFloat3("LookAt", &m_LookTo.x, 0.015f);
-		ImGui::DragFloat3("Up", &m_Up.x, 0.005f);
+	ImGui::DragFloat3("Eye", &m_Position.x, 0.015f);
+	ImGui::DragFloat3("LookAt", &m_LookTo.x, 0.015f);
+	ImGui::DragFloat3("Up", &m_Up.x, 0.005f);
 
-		ImGui::SliderAngle("FOV", &m_FOV, 5.0f, 160.0f);
-
-		const char* items[] = { "Orthographic", "Perspective" };
-		int selection = (int)m_CameraType;
-		ImGui::Combo("Camera Type", &selection, items, 2);
-		m_CameraType = (CAMERA_TYPE)selection;
-
-		ImGui::DragFloat("Near Plane", &m_NearPlane, 0.01f, 0.1f, 100.0f);
-		ImGui::DragFloat("Far Plane", &m_FarPlane, 0.1f, 0.2f, 5000.0f);
-
-		ImGui::ColorEdit3("Background Colour", &m_BackgroundColour.x);
-	}
+	ImGui::SliderAngle("FOV", &m_FOV, 5.0f, 160.0f);
 }
 
 DirectX::XMMATRIX Camera::CalculateViewMatrix() {

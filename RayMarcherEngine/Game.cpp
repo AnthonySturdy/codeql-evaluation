@@ -89,7 +89,7 @@ void Game::Render()
 
     // Update constant buffer
     static ConstantBuffer::RenderSettings rs;
-    ImGui::Begin("Scene Controls", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Render Settings", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::DragInt("Max Steps", (int*)&rs.maxSteps, 1.0f, 1, 1000);
         ImGui::DragFloat("Max Dist", &rs.maxDist, .5f, 1.0f, 10000.0f);
         ImGui::DragFloat("Threshold", &rs.intersectionThreshold, 0.0001f, 0.0001f, 0.3f);
@@ -105,41 +105,29 @@ void Game::Render()
     cam.resolution[1] = m_viewportSize.y;
     cam.view = m_camera->CalculateViewMatrix();
 
-    static ConstantBuffer::WorldObject obj;
-    obj.isActive = true;
-    obj.position[0] = 0.0f;
-    obj.position[1] = 0.0f;
-    obj.position[2] = 0.0f;
-    obj.objectType = 0;
-    obj.params[0] = 2.0f;
-
-    static ConstantBuffer::WorldObject obj1;
-    obj1.isActive = true;
-    obj1.position[0] = 0.0f;
-    obj1.position[1] = 5.0f;
-    obj1.position[2] = 0.0f;
-    obj1.objectType = 2;
-    obj1.params[0] = 2.0f;
-    obj1.params[1] = 0.5f;
-    obj1.params[2] = 3.0f;
-
-    static ConstantBuffer::WorldObject obj2;
-    obj2.isActive = true;
-    obj2.position[0] = 0.0f;
-    obj2.position[1] = 2.0f;
-    obj2.position[2] = 0.0f;
-    obj2.objectType = 4;
-    obj2.params[0] = 2.0f;
-    obj2.params[1] = 0.5f;
-    obj2.params[2] = 3.0f;
-
-    ConstantBuffer cb1;
+    static ConstantBuffer cb1;
     cb1.renderSettings = rs;
     cb1.camera = cam;
-    cb1.object[0] = obj;
-    cb1.object[1] = obj1;
-    cb1.object[2] = obj2;
-    
+    ImGui::Begin("Scene Controls", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize);
+    for (int i = 0; i < OBJECT_COUNT; i++) {
+        if (ImGui::CollapsingHeader((std::string("Object ") + std::to_string(i)).c_str())) {
+            ConstantBuffer::WorldObject obj = cb1.object[i];
+
+            ImGui::PushID(i);
+            ImGui::Checkbox("IsActive", (bool*)&obj.isActive);
+            ImGui::DragFloat3("Position", &obj.position[0], 0.015f);
+            const char* items[] = { "Sphere", "Box", "Torus", "Cone", "Cylinder" };
+            int selection = obj.objectType;
+            ImGui::Combo("Camera Type", &selection, items, 5);
+            obj.objectType = selection;
+            ImGui::DragFloat3("Params", &obj.params[0], 0.015f);
+            ImGui::PopID();
+
+            cb1.object[i] = obj;
+        }
+    }
+    ImGui::End();
+
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
     m_d3dContext->Map(m_constantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -181,7 +169,7 @@ void Game::Render()
         ImGui::Text("%.3fms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::End();
 
-    ImGui::Begin("Scene Controls", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Camera Controls", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize);
         m_camera->RenderGUIControls();
         m_gameObject->RenderGUIControls(m_d3dDevice.Get());
     ImGui::End();
