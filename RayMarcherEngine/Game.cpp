@@ -110,6 +110,9 @@ void Game::Render()
     cb1.camera = cam;
     ImGui::Begin("Scene Controls", (bool*)0, ImGuiWindowFlags_AlwaysAutoResize);
     for (int i = 0; i < OBJECT_COUNT; i++) {
+        if (i != 0 && !cb1.object[i - 1].isActive)
+            break;
+
         if (ImGui::CollapsingHeader((std::string("Object ") + std::to_string(i)).c_str())) {
             ConstantBuffer::WorldObject obj = cb1.object[i];
 
@@ -498,7 +501,7 @@ void Game::CreateCameras(int width, int height) {
     m_camera = std::make_shared<Camera>(XMFLOAT4(0.0f, 1.0f, -10.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f),
                                         Camera::CAMERA_TYPE::PERSPECTIVE,
                                         width / (float)height,
-                                        XMConvertToRadians(65.0f),
+                                        XMConvertToRadians(110.0f),
                                         0.01f, 100.0f);
 }
 

@@ -151,7 +151,7 @@ float4 PS(PS_INPUT IN) : SV_TARGET {
     uv.x *= aspectRatio;    // Apply viewport aspect ratio
     
     float3 ro = camera.position;    // Ray origin
-    float3 rd = normalize(mul(transpose(camera.view), float4(uv, tan(camera.fov), 0.0f)).xyz); // Ray direction
+    float3 rd = normalize(mul(transpose(camera.view), float4(uv, tan(-camera.fov), 0.0f)).xyz); // Ray direction
 
     float4 finalColour = float4(rd * .5 + .5, 1.0f); // Sky color
     Ray ray = RayMarch(ro, rd);

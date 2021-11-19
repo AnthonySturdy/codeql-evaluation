@@ -49,7 +49,7 @@ void Camera::RenderGUIControls() {
 	ImGui::DragFloat3("LookAt", &m_LookTo.x, 0.015f);
 	ImGui::DragFloat3("Up", &m_Up.x, 0.005f);
 
-	ImGui::SliderAngle("FOV", &m_FOV, 5.0f, 160.0f);
+	ImGui::SliderAngle("FOV", &m_FOV, 91.0f, 180.0f);
 }
 
 DirectX::XMMATRIX Camera::CalculateViewMatrix() {
