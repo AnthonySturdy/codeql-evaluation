@@ -123,7 +123,30 @@ void Game::Render()
             int selection = obj.objectType;
             ImGui::Combo("Camera Type", &selection, items, 5);
             obj.objectType = selection;
-            ImGui::DragFloat3("Params", &obj.params[0], 0.015f);
+            switch (obj.objectType) {
+            case 0: // Sphere
+                ImGui::DragFloat("Radius", &obj.params[0], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
+                break;
+            case 1: // Box
+                ImGui::DragFloat3("Size", &obj.params[0], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
+                break;
+            case 2: // Torus
+                ImGui::DragFloat("Radius", &obj.params[0], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
+                ImGui::DragFloat("Thickness", &obj.params[1], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
+                break;
+            case 3: // Cone
+                ImGui::DragFloat("Angle Sin", &obj.params[0], 0.015f);
+                ImGui::DragFloat("Angle Cos", &obj.params[1], 0.015f);
+                ImGui::DragFloat("Height", &obj.params[2], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
+                break;
+            case 4: // Cylinder
+                ImGui::DragFloat("Radius", &obj.params[0], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
+                ImGui::DragFloat("Height", &obj.params[1], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
+                break;
+            default:
+                ImGui::DragFloat3("Params", &obj.params[0], 0.015f);
+                break;
+            }
             ImGui::PopID();
 
             cb1.object[i] = obj;

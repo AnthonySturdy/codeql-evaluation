@@ -48,8 +48,15 @@ float sdCappedCylinder(float3 p, float h, float r)
 
 float sdCone(float3 p, float2 c, float h)
 {
-    float q = length(p.xz);
-    return max(dot(c.xy, float2(q, p.y)), -h - p.y);
+    float2 q = h * float2(c.x / c.y, -1.0);
+    
+    float2 w = float2(length(p.xz), p.y);
+    float2 a = w - q * clamp(dot(w, q) / dot(q, q), 0.0, 1.0);
+    float2 b = w - q * float2(clamp(w.x / q.x, 0.0, 1.0), 1.0);
+    float k = sign(q.y);
+    float d = min(dot(a, a), dot(b, b));
+    float s = max(k * (w.x * q.y - w.y * q.x), k * (w.y - q.y));
+    return sqrt(d) * sign(s);
 }
 
 float sdTorus(float3 p, float3 t)
@@ -80,7 +87,7 @@ float GetDistanceToScene(float3 p, out int index) {
         dists[0] = sdSphere(p - object[i].position, object[i].params.x);
         dists[1] = sdBox(p - object[i].position, object[i].params);
         dists[2] = sdTorus(p - object[i].position, object[i].params);
-        dists[3] = sdCone(p - object[i].position, object[i].params.x, object[i].params.y);
+        dists[3] = sdCone(p - object[i].position, object[i].params.xy, object[i].params.z);
         dists[4] = sdCappedCylinder(p - object[i].position, object[i].params.x, object[i].params.y);
 
         float prevDist = dist;
