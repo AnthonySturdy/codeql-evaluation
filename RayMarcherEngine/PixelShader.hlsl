@@ -1,4 +1,4 @@
-#define OBJECT_COUNT 10
+#define OBJECT_COUNT 50
 
 struct PS_INPUT {
     float4 Pos : SV_POSITION;

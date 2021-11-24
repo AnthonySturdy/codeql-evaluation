@@ -154,12 +154,7 @@ void Game::Render()
     }
     ImGui::End();
 
-    D3D11_MAPPED_SUBRESOURCE mappedResource;
-    ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
-    m_d3dContext->Map(m_constantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    memcpy(mappedResource.pData, &cb1, sizeof(ConstantBuffer));
-    //m_d3dContext->UpdateSubresource(m_constantBuffer.Get(), 0, nullptr, &cb1, 0, 0);
-    m_d3dContext->Unmap(m_constantBuffer.Get(), 0);
+    m_d3dContext->UpdateSubresource(m_constantBuffer.Get(), 0, nullptr, &cb1, 0, 0);
 
     // Render the quad
     m_d3dContext->VSSetShader(shader->GetVertexShader().Get(), nullptr, 0);
@@ -510,10 +505,10 @@ void Game::InitialiseImGui(HWND hwnd)
 void Game::CreateConstantBuffers() {
     // Create the constant buffer
     D3D11_BUFFER_DESC bd = {};
-    bd.Usage = D3D11_USAGE_DYNAMIC;
+    bd.Usage = D3D11_USAGE_DEFAULT;
     bd.ByteWidth = sizeof(ConstantBuffer);
     bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bd.CPUAccessFlags = 0;
     HRESULT hr = m_d3dDevice->CreateBuffer(&bd, nullptr, m_constantBuffer.GetAddressOf());
     if (FAILED(hr))
         return;
