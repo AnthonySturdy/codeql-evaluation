@@ -1,4 +1,4 @@
-#define OBJECT_COUNT 50
+#define OBJECT_COUNT 1
 
 struct PS_INPUT {
     float4 Pos : SV_POSITION;
@@ -101,7 +101,7 @@ float GetDistanceToScene(float3 p, out int index) {
 }
 
 float3 CalculateNormal(float3 p) {
-    const float3 offset = float3(0.001f, 0.0f, 0.0f);
+    const float2 offset = float2(0.001f, 0.0f);
 
     int index;
     float3 normal = float3(GetDistanceToScene(p + offset.xyy, index) - GetDistanceToScene(p - offset.xyy, index),
