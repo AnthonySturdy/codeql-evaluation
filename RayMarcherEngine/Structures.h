@@ -1,7 +1,7 @@
 #pragma once
 #include "pch.h"
 
-#define OBJECT_COUNT 1
+#define OBJECT_COUNT 10
 
 struct Vertex {
 	DirectX::XMFLOAT3 Pos;
