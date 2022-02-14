@@ -122,27 +122,25 @@ Ray RayMarch(float3 ro, float3 rd) {
     ray.stepCount = 0;
     
     // Step along ray direction
-    float depth = 0.0f;
-    for (uint i = 0; i < renderSettings.maxSteps; ++i) {
+    for (; ray.stepCount < renderSettings.maxSteps; ++ray.stepCount)
+    {
         int index;
-        float curDist = GetDistanceToScene(ro + rd * depth, index);
-        
+        float curDist = GetDistanceToScene(ro + rd * ray.depth, index);
+
         // If distance less than threshold, ray has intersected
         if (curDist < renderSettings.intersectionThreshold)
         {
             ray.hit = true;
             ray.hitObjectIndex = ceil(index);
-            ray.hitPosition = ro + rd * depth;
+            ray.hitPosition = ro + rd * ray.depth;
             ray.hitNormal = CalculateNormal(ray.hitPosition);
-            ray.depth = depth;
-            ray.stepCount = i;
-            
+                    
             return ray;
         }
         
         // Increment total depth by  distance to scene
-        depth += curDist;
-        if (depth > renderSettings.maxDist)
+        ray.depth += curDist;
+        if (ray.depth > renderSettings.maxDist)
             break;
     }
     
