@@ -1,10 +1,14 @@
 #pragma once
-#include <fstream>
 
-class Shader {
+class Shader
+{
 public:
 	Shader(ID3D11Device* device, const WCHAR* vertexShaderPathWithoutExt, const WCHAR* pixelShaderPathWithoutExt, D3D11_INPUT_ELEMENT_DESC* vertexLayout, UINT numElements);
-	~Shader();
+	Shader(const Shader&) = default;
+	Shader(Shader&&) = default;
+	Shader& operator=(const Shader&) = default;
+	Shader& operator=(Shader&&) = default;
+	~Shader() = default;
 
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> GetVertexShader() { return m_VertexShader; }
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> GetPixelShader() { return m_PixelShader; }

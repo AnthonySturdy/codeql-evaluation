@@ -26,7 +26,7 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="StepTimer.h" />
     <ClInclude Include="Structures.h" />
-    <ClInclude Include="GameObject.h" />
+    <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="External\imgui\imconfig.h">
@@ -62,7 +62,7 @@
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="External\imgui\imgui.cpp">

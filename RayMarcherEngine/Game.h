@@ -3,7 +3,7 @@
 #include "StepTimer.h"
 #include "Structures.h"
 
-#include "GameObject.h"
+#include "MeshRenderer.h"
 #include "Camera.h"
 
 // A basic game implementation that creates a D3D11 device and
@@ -11,76 +11,73 @@
 class Game
 {
 public:
+	Game() noexcept;
+	~Game() = default;
 
-    Game() noexcept;
-    ~Game() = default;
+	Game(Game&&) = default;
+	Game& operator=(Game&&) = default;
 
-    Game(Game&&) = default;
-    Game& operator= (Game&&) = default;
+	Game(Game const&) = delete;
+	Game& operator=(Game const&) = delete;
 
-    Game(Game const&) = delete;
-    Game& operator= (Game const&) = delete;
+	// Initialization and management
+	void Initialise(HWND window, int width, int height);
 
-    // Initialization and management
-    void Initialise(HWND window, int width, int height);
+	// Basic game loop
+	void Tick();
 
-    // Basic game loop
-    void Tick();
+	// Messages
+	void OnActivated();
+	void OnDeactivated();
+	void OnSuspending();
+	void OnResuming();
+	void OnWindowSizeChanged(int width, int height);
+	void OnViewportSizeChanged();
 
-    // Messages
-    void OnActivated();
-    void OnDeactivated();
-    void OnSuspending();
-    void OnResuming();
-    void OnWindowSizeChanged(int width, int height);
-    void OnViewportSizeChanged();
-
-    // Properties
-    void GetDefaultSize( int& width, int& height ) const noexcept;
+	// Properties
+	void GetDefaultSize(int& width, int& height) const noexcept;
 
 private:
+	void Update(DX::StepTimer const& timer);
+	void Render();
 
-    void Update(DX::StepTimer const& timer);
-    void Render();
+	void SetRenderTargetAndClear(ID3D11RenderTargetView* rtv, ID3D11DepthStencilView* dsv);
+	void Present();
 
-    void SetRenderTargetAndClear(ID3D11RenderTargetView* rtv, ID3D11DepthStencilView* dsv);
-    void Present();
+	void CreateDevice();
+	void CreateResources();
+	void InitialiseImGui(HWND hwnd);
+	void CreateConstantBuffers();
+	void CreateCameras(int width, int height);
+	void CreateGameObjects();
 
-    void CreateDevice();
-    void CreateResources();
-    void InitialiseImGui(HWND hwnd);
-    void CreateConstantBuffers();
-    void CreateCameras(int width, int height);
-    void CreateGameObjects();
+	void OnDeviceLost();
 
-    void OnDeviceLost();
+	// Device resources.
+	HWND Window;
+	int OutputWidth;
+	int OutputHeight;
 
-    // Device resources.
-    HWND                                            m_window;
-    int                                             m_outputWidth;
-    int                                             m_outputHeight;
+	D3D_FEATURE_LEVEL FeatureLevel;
+	Microsoft::WRL::ComPtr<ID3D11Device1> Device;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext1> Context;
 
-    D3D_FEATURE_LEVEL                               m_featureLevel;
-    Microsoft::WRL::ComPtr<ID3D11Device1>           m_d3dDevice;
-    Microsoft::WRL::ComPtr<ID3D11DeviceContext1>    m_d3dContext;
+	Microsoft::WRL::ComPtr<IDXGISwapChain1> SwapChain;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> RenderTargetView;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> DepthStencilView;
 
-    Microsoft::WRL::ComPtr<IDXGISwapChain1>         m_swapChain;
-    Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  m_renderTargetView;
-    Microsoft::WRL::ComPtr<ID3D11DepthStencilView>  m_depthStencilView;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> RTTRenderTargetView;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> RTTDepthStencilView;
+	ImVec2 ViewportSize;
 
-    Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  m_rttRenderTargetView;
-    Microsoft::WRL::ComPtr<ID3D11DepthStencilView>  m_rttDepthStencilView;
-    ImVec2                                          m_viewportSize;
+	// Rendering loop timer.
+	DX::StepTimer Timer;
 
+	// ImGui
+	ImGuiIO* m_ioImGui = nullptr;
 
-    // Rendering loop timer.
-    DX::StepTimer                                   m_timer;
-
-    // ImGui
-    ImGuiIO* m_ioImGui = nullptr;
-
-    // Scene
-    std::shared_ptr<Camera> m_camera;
-    std::shared_ptr<GameObject> m_gameObject;
-    Microsoft::WRL::ComPtr<ID3D11Buffer> m_constantBuffer;
+	// Scene
+	std::shared_ptr<Camera> ActiveCamera;
+	std::shared_ptr<MeshRenderer> RaymarchFullscreenRenderer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> RaymarchConstBuffer;
 };

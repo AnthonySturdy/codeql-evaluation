@@ -3,12 +3,15 @@
 #include "Shader.h"
 #include "Mesh.h"
 
-#include <vector>
-
-class GameObject {
+class MeshRenderer
+{
 public:
-	GameObject();
-	~GameObject();
+	MeshRenderer() = default;
+	MeshRenderer(const MeshRenderer&) = default;
+	MeshRenderer(MeshRenderer&&) = default;
+	MeshRenderer& operator=(const MeshRenderer&) = default;
+	MeshRenderer& operator=(MeshRenderer&&) = default;
+	~MeshRenderer() = default;
 
 	void InitMesh(ID3D11Device* device, ID3D11DeviceContext* context);
 	void InitShader(ID3D11Device* device, const WCHAR* vertexShaderPathWithoutExt, const WCHAR* pixelShaderPathWithoutExt, D3D11_INPUT_ELEMENT_DESC* vertexLayout, UINT numElements);
@@ -18,17 +21,9 @@ public:
 
 	void RenderGUIControls(ID3D11Device* device);
 
-	DirectX::XMFLOAT4X4* GetTransform() { return &m_world; }
-	std::shared_ptr<Shader> GetShader() { return m_shader; }
-
-	void SetPosition(DirectX::XMFLOAT3 pos) { m_position = pos; }
+	std::shared_ptr<Shader> GetShader() { return MeshShader; }
 
 private:
-	DirectX::XMFLOAT3 m_position;
-	DirectX::XMFLOAT3 m_rotation;
-	DirectX::XMFLOAT3 m_scale;
-	DirectX::XMFLOAT4X4 m_world;
-
-	std::shared_ptr<Shader> m_shader;
-	std::shared_ptr<Mesh> m_mesh;
+	std::shared_ptr<Shader> MeshShader;
+	std::shared_ptr<Mesh> MeshData;
 };
