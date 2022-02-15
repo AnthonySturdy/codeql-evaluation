@@ -78,6 +78,6 @@ private:
 
 	// Scene
 	std::shared_ptr<Camera> ActiveCamera;
-	std::shared_ptr<MeshRenderer> RaymarchFullscreenRenderer;
+	std::shared_ptr<MeshRenderer> RaymarchFullscreenMeshRenderer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> RaymarchConstBuffer;
 };

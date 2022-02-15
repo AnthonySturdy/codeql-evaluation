@@ -18,7 +18,7 @@ struct ConstantBuffer
 		unsigned int maxSteps;
 		float maxDist;
 		float intersectionThreshold;
-		float PADDING; // 16 bytes
+		float PADDING{}; // 16 bytes
 	} renderSettings;
 
 	struct WorldCamera

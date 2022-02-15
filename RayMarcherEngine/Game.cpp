@@ -53,7 +53,7 @@ void Game::Update(DX::StepTimer const& timer)
 	float elapsedTime = static_cast<float>(timer.GetElapsedSeconds());
 
 	// TODO: Add your game logic here.
-	RaymarchFullscreenRenderer->Update(elapsedTime, Context.Get());
+	RaymarchFullscreenMeshRenderer->Update(elapsedTime, Context.Get());
 }
 
 // Draws the scene.
@@ -76,16 +76,15 @@ void Game::Render()
 	// Create ImGui dockspace
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
-	// Get the game object's shader
-	Shader* shader = RaymarchFullscreenRenderer->GetShader().get();
-
 	// Set active vertex layout
+
+	const auto shader = RaymarchFullscreenMeshRenderer->GetShader();
 	Context->IASetInputLayout(shader->GetVertexLayout().Get());
 
 	// Update constant buffer
 	static ConstantBuffer::RenderSettings rs;
 	ImGui::Begin("Render Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-	ImGui::DragInt("Max Steps", (int*)&rs.maxSteps, 1.0f, 1, 1000);
+	ImGui::DragInt("Max Steps", reinterpret_cast<int*>(&rs.maxSteps), 1.0f, 1, 1000);
 	ImGui::DragFloat("Max Dist", &rs.maxDist, .5f, 1.0f, 10000.0f);
 	ImGui::DragFloat("Threshold", &rs.intersectionThreshold, 0.0001f, 0.0001f, 0.3f);
 	ImGui::End();
@@ -159,7 +158,7 @@ void Game::Render()
 	Context->PSSetShader(shader->GetPixelShader().Get(), nullptr, 0);
 	Context->PSSetConstantBuffers(0, 1, RaymarchConstBuffer.GetAddressOf());
 
-	RaymarchFullscreenRenderer->Render(Context.Get());
+	RaymarchFullscreenMeshRenderer->Render(Context.Get());
 
 	// Bind render target to back buffer
 	SetRenderTargetAndClear(RenderTargetView.Get(), DepthStencilView.Get());
@@ -191,7 +190,7 @@ void Game::Render()
 
 	ImGui::Begin("Camera Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 	ActiveCamera->RenderGUIControls();
-	RaymarchFullscreenRenderer->RenderGUIControls(Device.Get());
+	RaymarchFullscreenMeshRenderer->RenderGUIControls(Device.Get());
 	ImGui::End();
 
 	// Render ImGui
@@ -524,15 +523,15 @@ void Game::CreateCameras(int width, int height)
 void Game::CreateGameObjects()
 {
 	// Create and initialise GameObject
-	RaymarchFullscreenRenderer = std::make_shared<MeshRenderer>();
-	RaymarchFullscreenRenderer->InitMesh(Device.Get(), Context.Get());
+	RaymarchFullscreenMeshRenderer = std::make_shared<MeshRenderer>();
+	RaymarchFullscreenMeshRenderer->InitMesh(Device.Get(), Context.Get());
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
 	};
 	UINT numElements = ARRAYSIZE(layout);
-	RaymarchFullscreenRenderer->InitShader(Device.Get(), L"VertexShader", L"PixelShader", layout, numElements);
+	RaymarchFullscreenMeshRenderer->InitShader(Device.Get(), L"VertexShader", L"PixelShader", layout, numElements);
 }
 
 void Game::OnDeviceLost()
