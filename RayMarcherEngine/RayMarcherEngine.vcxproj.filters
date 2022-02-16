@@ -59,7 +59,7 @@
     </ClInclude>
     <ClInclude Include="Scene.h" />
     <ClInclude Include="GameObject.h" />
-    <ClInclude Include="SDFGenerator.h" />
+    <ClInclude Include="SDFShaderGenerator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -95,7 +95,7 @@
     </ClCompile>
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="GameObject.cpp" />
-    <ClCompile Include="SDFGenerator.cpp" />
+    <ClCompile Include="SDFShaderGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -126,6 +126,9 @@
       <Filter>Shaders\Compiled</Filter>
     </None>
     <None Include="GeneratedSceneDistance.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="SceneDistanceTemplate.hlsli">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

@@ -40,6 +40,8 @@ cbuffer WorldCBuf : register(b2) {
     } object[OBJECT_COUNT];
 }
 
+#include "GeneratedSceneDistance.hlsli"
+
 struct Ray {
     bool hit;
     uint hitObjectIndex;
@@ -49,42 +51,6 @@ struct Ray {
     uint stepCount;
 };
 
-float sdCappedCylinder(float3 p, float h, float r)
-{
-    float2 d = abs(float2(length(p.xz), p.y)) - float2(h, r);
-    return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
-}
-
-float sdCone(float3 p, float2 c, float h)
-{
-    float2 q = h * float2(c.x / c.y, -1.0);
-    
-    float2 w = float2(length(p.xz), p.y);
-    float2 a = w - q * clamp(dot(w, q) / dot(q, q), 0.0, 1.0);
-    float2 b = w - q * float2(clamp(w.x / q.x, 0.0, 1.0), 1.0);
-    float k = sign(q.y);
-    float d = min(dot(a, a), dot(b, b));
-    float s = max(k * (w.x * q.y - w.y * q.x), k * (w.y - q.y));
-    return sqrt(d) * sign(s);
-}
-
-float sdTorus(float3 p, float3 t)
-{
-    float2 q = float2(length(p.xz) - t.x, p.y);
-    return length(q) - t.y;
-}
-
-float sdBox(float3 p, float3 b) {
-    float3 q = abs(p) - b;
-    return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
-}
-
-float sdSphere(float3 p, float s)
-{
-    return length(p) - s;
-}
-
-#include "GeneratedSceneDistance.hlsli"
 
 float3 CalculateNormal(float3 p) {
     const float2 offset = float2(0.001f, 0.0f);

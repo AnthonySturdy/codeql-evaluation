@@ -3,11 +3,18 @@
 
 void GameObject::RenderGUIControls()
 {
-	ImGui::Begin("Scene Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 	ImGui::PushID(this);
 
-	ImGui::DragFloat3("Position", &Position.x, 0.05f);
+	if (ImGui::CollapsingHeader("GameObject"))
+	{
+		ImGui::DragFloat3("Position", &Position.x, 0.05f);
+		ImGui::DragFloat3("Rotation", &Rotation.x, 0.05f);
+		ImGui::DragFloat3("Scale", &Scale.x, 0.05f);
+
+		ImGui::InputInt("Object Type", &ObjectType);
+
+		ImGui::DragFloat3("Parameters", &Parameters.x, 0.05f);
+	}
 
 	ImGui::PopID();
-	ImGui::End();
 }

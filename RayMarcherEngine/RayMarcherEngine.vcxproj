@@ -202,7 +202,7 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Scene.h" />
-    <ClInclude Include="SDFGenerator.h" />
+    <ClInclude Include="SDFShaderGenerator.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="StepTimer.h" />
     <ClInclude Include="Structures.h" />
@@ -255,7 +255,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="SDFGenerator.cpp" />
+    <ClCompile Include="SDFShaderGenerator.cpp" />
     <ClCompile Include="Shader.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -314,6 +314,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </None>
     <None Include="PixelShader.cso" />
+    <None Include="SceneDistanceTemplate.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
     <None Include="VertexShader.cso" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

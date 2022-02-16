@@ -30,9 +30,9 @@ void Game::Initialise(HWND window, int width, int height)
 
 	CreateCameras(width, height);
 
-	CreateScenes();
-
 	CreateMeshRenderers();
+
+	CreateScenes();
 
 	// Enable vsync
 	//m_timer.SetFixedTimeStep(true);
@@ -534,6 +534,7 @@ void Game::CreateCameras(int width, int height)
 void Game::CreateScenes()
 {
 	scene = std::make_unique<Scene>(Device.Get());
+	scene->SetShader(RaymarchFullscreenMeshRenderer->GetShader());
 }
 
 void Game::CreateMeshRenderers()

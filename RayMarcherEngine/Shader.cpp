@@ -1,15 +1,21 @@
 #include "pch.h"
 #include "Shader.h"
 
-#include "SDFGenerator.h"
+#include "SDFShaderGenerator.h"
 
 Shader::Shader(ID3D11Device* device, const WCHAR* vertexShaderPathWithoutExt, const WCHAR* pixelShaderPathWithoutExt, D3D11_INPUT_ELEMENT_DESC* vertexLayout, UINT numElements)
+	: Device(device), VertexShaderPathWithoutExt(vertexShaderPathWithoutExt), PixelShaderPathWithoutExt(pixelShaderPathWithoutExt), VertexLayout(vertexLayout), NumElements(numElements)
 {
-	SDFGenerator::WriteToShaderFile(SDFGenerator::GetSceneDistanceFunction());
+	Initialise();
+}
+
+void Shader::Initialise()
+{
+	CompilePixelShader();
 
 	// Compile and create Vertex shader
 	ID3DBlob* vsBlob = nullptr;
-	std::wstring vertShaderHlsl(vertexShaderPathWithoutExt);
+	std::wstring vertShaderHlsl(VertexShaderPathWithoutExt);
 	vertShaderHlsl += L".hlsl";
 	if (FAILED(CompileShaderFromFile(vertShaderHlsl.c_str(), "VS", "vs_5_0", &vsBlob)))
 	{
@@ -17,15 +23,28 @@ Shader::Shader(ID3D11Device* device, const WCHAR* vertexShaderPathWithoutExt, co
 		return;
 	}
 
-	if (FAILED(device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &m_VertexShader)))
+	if (FAILED(Device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, m_VertexShader.ReleaseAndGetAddressOf())))
 	{
 		vsBlob->Release();
 		return;
 	}
 
+	// Create the input layout
+	if (FAILED(Device->CreateInputLayout(VertexLayout, NumElements, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), m_VertexLayout.ReleaseAndGetAddressOf())))
+	{
+		vsBlob->Release();
+		return;
+	}
+
+	// Release blobs
+	vsBlob->Release();
+}
+
+void Shader::CompilePixelShader()
+{
 	// Compile and create Pixel shader
 	ID3DBlob* psBlob = nullptr;
-	std::wstring pixelShaderHlsl(pixelShaderPathWithoutExt);
+	std::wstring pixelShaderHlsl(PixelShaderPathWithoutExt);
 	pixelShaderHlsl += L".hlsl";
 	if (FAILED(CompileShaderFromFile(pixelShaderHlsl.c_str(), "PS", "ps_5_0", &psBlob)))
 	{
@@ -33,24 +52,10 @@ Shader::Shader(ID3D11Device* device, const WCHAR* vertexShaderPathWithoutExt, co
 		return;
 	}
 
-	if (FAILED(device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &m_PixelShader)))
+	if (FAILED(Device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, m_PixelShader.ReleaseAndGetAddressOf())))
 	{
-		vsBlob->Release();
 		psBlob->Release();
-		return;
 	}
-
-	// Create the input layout
-	if (FAILED(device->CreateInputLayout(vertexLayout, numElements, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_VertexLayout)))
-	{
-		vsBlob->Release();
-		psBlob->Release();
-		return;
-	}
-
-	// Release blobs
-	vsBlob->Release();
-	psBlob->Release();
 }
 
 HRESULT Shader::CompileShaderFromFile(const WCHAR* fileName, LPCSTR entryPoint, LPCSTR shaderModel, ID3DBlob** blobOut)
