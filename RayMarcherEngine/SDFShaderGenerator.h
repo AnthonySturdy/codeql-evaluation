@@ -6,11 +6,13 @@
 class SDFShaderGenerator
 {
 public:
-	static std::string GenerateSignedDistanceFunction(int objectType);
-	static std::string GetSceneDistanceFunctionContents(std::vector<GameObject>& gameObjects);
+	static void RenderGUIControls();
 
-	static void WriteToHeaderShader(std::string content, std::ios_base::openmode writeMode = std::ios_base::out);
-	static void WriteDistanceFunctionToShader(std::string funcContents);
+	static std::string GenerateSignedDistanceFunction(int objectType);
+	static std::string GenerateSceneDistanceFunctionContents(std::vector<GameObject>& gameObjects);
+
+	static void WriteStringToHeaderShader(std::string content, std::ios_base::openmode writeMode = std::ios_base::out);
+	static void WriteSceneDistanceFunctionToShaderHeader(std::string funcContents);
 
 private:
 	inline static std::vector<std::pair<std::string, std::string>> SDFFuncContents = {

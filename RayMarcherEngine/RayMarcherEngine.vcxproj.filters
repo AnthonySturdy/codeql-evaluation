@@ -60,6 +60,9 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="SDFShaderGenerator.h" />
+    <ClInclude Include="External\imgui\imgui_stdlib.h">
+      <Filter>External\imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -96,6 +99,9 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="SDFShaderGenerator.cpp" />
+    <ClCompile Include="External\imgui\imgui_stdlib.cpp">
+      <Filter>External\imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

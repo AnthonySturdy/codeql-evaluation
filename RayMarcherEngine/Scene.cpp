@@ -5,13 +5,6 @@
 
 Scene::Scene(ID3D11Device* device)
 {
-	GameObjects.resize(OBJECT_COUNT);
-	for (int i = 0; i < GameObjects.size(); i++)
-		GameObjects[i].SetPosition(DirectX::SimpleMath::Vector4(i, 0.0f, 0.0f, 0.0f));
-
-	GameObjects[0].SetObjectType(1);
-	GameObjects[4].SetObjectType(1);
-
 	CreateConstantBuffers(device);
 }
 
@@ -19,6 +12,8 @@ void Scene::Update(float dt, ID3D11Device* device) { }
 
 void Scene::Render(ID3D11DeviceContext* context)
 {
+	SDFShaderGenerator::RenderGUIControls();
+
 	// Update constant buffers
 	static ConstantBuffer::WorldObject objects[OBJECT_COUNT];
 	static int objectTypeSum = -1;
@@ -54,9 +49,9 @@ void Scene::Render(ID3D11DeviceContext* context)
 				sdfs += goSdf;
 		}
 
-		SDFShaderGenerator::WriteToHeaderShader(sdfs);
+		SDFShaderGenerator::WriteStringToHeaderShader(sdfs);
 
-		SDFShaderGenerator::WriteDistanceFunctionToShader(SDFShaderGenerator::GetSceneDistanceFunctionContents(GameObjects));
+		SDFShaderGenerator::WriteSceneDistanceFunctionToShaderHeader(SDFShaderGenerator::GenerateSceneDistanceFunctionContents(GameObjects));
 
 		ActiveShader->CompilePixelShader();
 	}

@@ -12,6 +12,7 @@ void GameObject::RenderGUIControls()
 		ImGui::DragFloat3("Scale", &Scale.x, 0.05f);
 
 		ImGui::InputInt("Object Type", &ObjectType);
+		ObjectType = std::max(0, ObjectType);
 
 		ImGui::DragFloat3("Parameters", &Parameters.x, 0.05f);
 	}

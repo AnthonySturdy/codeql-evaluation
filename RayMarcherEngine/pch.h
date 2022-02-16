@@ -55,15 +55,16 @@
 #include "External/imgui/imgui_impl_win32.h"
 #include "External/imgui/imgui_impl_dx11.h"
 #include "External/imgui/ImGuiFileDialog/ImGuiFileDialog.h"
+#include "External/imgui/imgui_stdlib.h"
 
 namespace DX
 {
-    inline void ThrowIfFailed(HRESULT hr)
-    {
-        if (FAILED(hr))
-        {
-            // Set a breakpoint on this line to catch DirectX API errors
-            throw std::exception();
-        }
-    }
+	inline void ThrowIfFailed(HRESULT hr)
+	{
+		if (FAILED(hr))
+		{
+			// Set a breakpoint on this line to catch DirectX API errors
+			throw std::exception();
+		}
+	}
 }
