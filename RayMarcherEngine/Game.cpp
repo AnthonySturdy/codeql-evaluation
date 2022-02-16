@@ -30,7 +30,9 @@ void Game::Initialise(HWND window, int width, int height)
 
 	CreateCameras(width, height);
 
-	CreateGameObjects();
+	CreateScenes();
+
+	CreateMeshRenderers();
 
 	// Enable vsync
 	//m_timer.SetFixedTimeStep(true);
@@ -52,8 +54,7 @@ void Game::Update(DX::StepTimer const& timer)
 {
 	float elapsedTime = static_cast<float>(timer.GetElapsedSeconds());
 
-	// TODO: Add your game logic here.
-	RaymarchFullscreenMeshRenderer->Update(elapsedTime, Context.Get());
+	scene->Update(elapsedTime, Device.Get());
 }
 
 // Draws the scene.
@@ -76,18 +77,76 @@ void Game::Render()
 	// Create ImGui dockspace
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
-	// Set active vertex layout
+	scene->Render(Context.Get());
 
+	// Set active vertex layout
 	const auto shader = RaymarchFullscreenMeshRenderer->GetShader();
 	Context->IASetInputLayout(shader->GetVertexLayout().Get());
 
 	// Update constant buffer
 	static ConstantBuffer::RenderSettings rs;
+	rs.resolution[0] = ViewportSize.x;
+	rs.resolution[1] = ViewportSize.y;
 	ImGui::Begin("Render Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 	ImGui::DragInt("Max Steps", reinterpret_cast<int*>(&rs.maxSteps), 1.0f, 1, 1000);
 	ImGui::DragFloat("Max Dist", &rs.maxDist, .5f, 1.0f, 10000.0f);
 	ImGui::DragFloat("Threshold", &rs.intersectionThreshold, 0.0001f, 0.0001f, 0.3f);
 	ImGui::End();
+
+	Context->UpdateSubresource(RenderSettingsConstantBuffer.Get(), 0, nullptr, &rs, 0, 0);
+
+
+	//static ConstantBuffer cb1;
+	//cb1.renderSettings = rs;
+	//cb1.camera = cam;
+	//ImGui::Begin("Scene Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+	//for (int i = 0; i < OBJECT_COUNT; i++)
+	//{
+	//	if (i != 0 && !cb1.object[i - 1].isActive)
+	//		break;
+	//
+	//	if (ImGui::CollapsingHeader((std::string("Object ") + std::to_string(i)).c_str()))
+	//	{
+	//		ConstantBuffer::WorldObject obj = cb1.object[i];
+	//
+	//		ImGui::PushID(i);
+	//		ImGui::Checkbox("IsActive", reinterpret_cast<bool*>(&obj.isActive));
+	//		ImGui::DragFloat3("Position", &obj.position[0], 0.015f);
+	//		const char* items[] = { "Sphere", "Box", "Torus", "Cone", "Cylinder" };
+	//		int selection = obj.objectType;
+	//		ImGui::Combo("Camera Type", &selection, items, 5);
+	//		obj.objectType = selection;
+	//		switch (obj.objectType)
+	//		{
+	//		case 0: // Sphere
+	//			ImGui::DragFloat("Radius", &obj.params[0], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
+	//			break;
+	//		case 1: // Box
+	//			ImGui::DragFloat3("Size", &obj.params[0], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
+	//			break;
+	//		case 2: // Torus
+	//			ImGui::DragFloat("Radius", &obj.params[0], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
+	//			ImGui::DragFloat("Thickness", &obj.params[1], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
+	//			break;
+	//		case 3: // Cone
+	//			ImGui::DragFloat("Angle Sin", &obj.params[0], 0.015f);
+	//			ImGui::DragFloat("Angle Cos", &obj.params[1], 0.015f);
+	//			ImGui::DragFloat("Height", &obj.params[2], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
+	//			break;
+	//		case 4: // Cylinder
+	//			ImGui::DragFloat("Radius", &obj.params[0], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
+	//			ImGui::DragFloat("Height", &obj.params[1], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
+	//			break;
+	//		default:
+	//			ImGui::DragFloat3("Params", &obj.params[0], 0.015f);
+	//			break;
+	//		}
+	//		ImGui::PopID();
+	//
+	//		cb1.object[i] = obj;
+	//	}
+	//}
+	//ImGui::End();
 
 	static ConstantBuffer::WorldCamera cam;
 	cam.position[0] = ActiveCamera->GetCameraPosition().x;
@@ -95,68 +154,15 @@ void Game::Render()
 	cam.position[2] = ActiveCamera->GetCameraPosition().z;
 	cam.fov = ActiveCamera->GetFOV();
 	cam.cameraType = static_cast<int>(ActiveCamera->GetCameraType());
-	cam.resolution[0] = ViewportSize.x;
-	cam.resolution[1] = ViewportSize.y;
 	cam.view = ActiveCamera->CalculateViewMatrix();
 
-	static ConstantBuffer cb1;
-	cb1.renderSettings = rs;
-	cb1.camera = cam;
-	ImGui::Begin("Scene Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-	for (int i = 0; i < OBJECT_COUNT; i++)
-	{
-		if (i != 0 && !cb1.object[i - 1].isActive)
-			break;
-
-		if (ImGui::CollapsingHeader((std::string("Object ") + std::to_string(i)).c_str()))
-		{
-			ConstantBuffer::WorldObject obj = cb1.object[i];
-
-			ImGui::PushID(i);
-			ImGui::Checkbox("IsActive", (bool*)&obj.isActive);
-			ImGui::DragFloat3("Position", &obj.position[0], 0.015f);
-			const char* items[] = {"Sphere", "Box", "Torus", "Cone", "Cylinder"};
-			int selection = obj.objectType;
-			ImGui::Combo("Camera Type", &selection, items, 5);
-			obj.objectType = selection;
-			switch (obj.objectType)
-			{
-			case 0: // Sphere
-				ImGui::DragFloat("Radius", &obj.params[0], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
-				break;
-			case 1: // Box
-				ImGui::DragFloat3("Size", &obj.params[0], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
-				break;
-			case 2: // Torus
-				ImGui::DragFloat("Radius", &obj.params[0], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
-				ImGui::DragFloat("Thickness", &obj.params[1], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
-				break;
-			case 3: // Cone
-				ImGui::DragFloat("Angle Sin", &obj.params[0], 0.015f);
-				ImGui::DragFloat("Angle Cos", &obj.params[1], 0.015f);
-				ImGui::DragFloat("Height", &obj.params[2], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
-				break;
-			case 4: // Cylinder
-				ImGui::DragFloat("Radius", &obj.params[0], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
-				ImGui::DragFloat("Height", &obj.params[1], 0.015f, 0.0f, D3D11_FLOAT32_MAX);
-				break;
-			default:
-				ImGui::DragFloat3("Params", &obj.params[0], 0.015f);
-				break;
-			}
-			ImGui::PopID();
-
-			cb1.object[i] = obj;
-		}
-	}
-	ImGui::End();
-
-	Context->UpdateSubresource(RaymarchConstBuffer.Get(), 0, nullptr, &cb1, 0, 0);
+	Context->UpdateSubresource(CameraConstantBuffer.Get(), 0, nullptr, &cam, 0, 0);
 
 	// Render the quad
 	Context->VSSetShader(shader->GetVertexShader().Get(), nullptr, 0);
 	Context->PSSetShader(shader->GetPixelShader().Get(), nullptr, 0);
-	Context->PSSetConstantBuffers(0, 1, RaymarchConstBuffer.GetAddressOf());
+	Context->PSSetConstantBuffers(0, 1, RenderSettingsConstantBuffer.GetAddressOf());
+	Context->PSSetConstantBuffers(1, 1, CameraConstantBuffer.GetAddressOf());
 
 	RaymarchFullscreenMeshRenderer->Render(Context.Get());
 
@@ -362,7 +368,7 @@ void Game::CreateDevice()
 void Game::CreateResources()
 {
 	// Clear the previous window size specific context.
-	ID3D11RenderTargetView* nullViews[] = {nullptr};
+	ID3D11RenderTargetView* nullViews[] = { nullptr };
 	Context->OMSetRenderTargets(static_cast<UINT>(std::size(nullViews)), nullViews, nullptr);
 	RenderTargetView.Reset();
 	DepthStencilView.Reset();
@@ -502,12 +508,17 @@ void Game::CreateConstantBuffers()
 	// Create the constant buffer
 	D3D11_BUFFER_DESC bd = {};
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(ConstantBuffer);
+	bd.ByteWidth = sizeof(ConstantBuffer::RenderSettings);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
-	HRESULT hr = Device->CreateBuffer(&bd, nullptr, RaymarchConstBuffer.GetAddressOf());
-	if (FAILED(hr))
-		return;
+	Device->CreateBuffer(&bd, nullptr, RenderSettingsConstantBuffer.GetAddressOf());
+
+	bd = {};
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(ConstantBuffer::WorldCamera);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+	Device->CreateBuffer(&bd, nullptr, CameraConstantBuffer.GetAddressOf());
 }
 
 void Game::CreateCameras(int width, int height)
@@ -520,15 +531,20 @@ void Game::CreateCameras(int width, int height)
 	                                        0.01f, 100.0f);
 }
 
-void Game::CreateGameObjects()
+void Game::CreateScenes()
+{
+	scene = std::make_unique<Scene>(Device.Get());
+}
+
+void Game::CreateMeshRenderers()
 {
 	// Create and initialise GameObject
 	RaymarchFullscreenMeshRenderer = std::make_shared<MeshRenderer>();
 	RaymarchFullscreenMeshRenderer->InitMesh(Device.Get(), Context.Get());
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
-		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 	UINT numElements = ARRAYSIZE(layout);
 	RaymarchFullscreenMeshRenderer->InitShader(Device.Get(), L"VertexShader", L"PixelShader", layout, numElements);

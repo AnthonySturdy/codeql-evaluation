@@ -16,8 +16,6 @@ void MeshRenderer::InitShader(ID3D11Device* device, const WCHAR* vertexShaderPat
 	MeshShader = std::make_shared<Shader>(device, vertexShaderPathWithoutExt, pixelShaderPathWithoutExt, vertexLayout, numElements);
 }
 
-void MeshRenderer::Update(float t, ID3D11DeviceContext* context) {}
-
 void MeshRenderer::Render(ID3D11DeviceContext* context)
 {
 	ID3D11Buffer* vertexBuf = MeshData->GetVertexBuffer();

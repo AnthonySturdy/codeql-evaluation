@@ -64,7 +64,7 @@ HRESULT Shader::CompileShaderFromFile(const WCHAR* fileName, LPCSTR entryPoint, 
 #endif
 
 	ID3DBlob* pErrorBlob = nullptr;
-	hr = D3DCompileFromFile(fileName, nullptr, nullptr, entryPoint, shaderModel,
+	hr = D3DCompileFromFile(fileName, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entryPoint, shaderModel,
 	                        dwShaderFlags, 0, blobOut, &pErrorBlob);
 
 	if (FAILED(hr))

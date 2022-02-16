@@ -18,22 +18,23 @@ struct ConstantBuffer
 		unsigned int maxSteps;
 		float maxDist;
 		float intersectionThreshold;
-		float PADDING{}; // 16 bytes
+		float PADDING; // 16 bytes
+		unsigned int resolution[2];
+		float PADDING1[2];
 	} renderSettings;
 
 	struct WorldCamera
 	{
 		float fov;
 		float position[3]; // 16 bytes
-		unsigned int resolution[2];
 		BOOL cameraType;
-		float PADDING; // 32 bytes
+		float PADDING[3]; // 32 bytes
 		DirectX::XMMATRIX view; // 48 Bytes
 	} camera;
 
 	struct WorldObject
 	{
-		WorldObject() : isActive(false), position{0.0f, 0.0f, 0.0f}, objectType(0), params{0.0f, 0.0f, 0.0f} {}
+		WorldObject() : isActive(false), position{ 0.0f, 0.0f, 0.0f }, objectType(0), params{ 0.0f, 0.0f, 0.0f } {}
 
 		BOOL isActive;
 		float position[3]; // 16 bytes

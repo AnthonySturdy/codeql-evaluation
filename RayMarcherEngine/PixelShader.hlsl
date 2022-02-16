@@ -1,3 +1,5 @@
+#include "GeneratedPSHeader.hlsli"
+
 #define OBJECT_COUNT 10
 
 struct PS_INPUT {
@@ -5,23 +7,32 @@ struct PS_INPUT {
     float2 Tex : TEXCOORD0;
 };
 
-cbuffer ConstantBuffer : register(b0) {
-    struct RenderSettings {
+cbuffer RenderSettings : register(b0)
+{
+    struct RS
+    {
         unsigned int maxSteps;
         float maxDist;
         float intersectionThreshold;
-        float PADDING;      // 16 bytes
-    } renderSettings;
-    
-    struct WorldCamera {
-        float fov;
-        float3 position;    // 16 bytes
+        float PADDING; // 16 bytes
         uint2 resolution;
-        int cameraType;
-        float PADDING;      // 32 bytes
-        matrix view;        // 48 Bytes
-    } camera;
+        float2 PADDING1; // 32 bytes
+    } renderSettings;
+}
 
+cbuffer WorldCamera : register(b1)
+{
+    struct WC
+    {
+        float fov;
+        float3 position; // 16 bytes
+        int cameraType;
+        float3 PADDING; // 32 bytes
+        matrix view; // 48 Bytes
+    } camera;
+}
+
+cbuffer WorldCBuf : register(b2) {
     struct WorldObject
     {
         bool isActive;
@@ -149,7 +160,7 @@ Ray RayMarch(float3 ro, float3 rd) {
 
 
 float4 PS(PS_INPUT IN) : SV_TARGET {
-    const float aspectRatio = camera.resolution.x / (float)camera.resolution.y;
+    const float aspectRatio = renderSettings.resolution.x / (float)renderSettings.resolution.y;
     float2 uv = IN.Tex;
     uv.y = 1.0f - uv.y;     // Flip UV on Y axis
     uv = uv * 2.0f - 1.0f;  // Move UV to (-1, 1) range

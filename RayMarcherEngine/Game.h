@@ -5,6 +5,7 @@
 
 #include "MeshRenderer.h"
 #include "Camera.h"
+#include "Scene.h"
 
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
@@ -49,7 +50,8 @@ private:
 	void InitialiseImGui(HWND hwnd);
 	void CreateConstantBuffers();
 	void CreateCameras(int width, int height);
-	void CreateGameObjects();
+	void CreateScenes();
+	void CreateMeshRenderers();
 
 	void OnDeviceLost();
 
@@ -77,7 +79,9 @@ private:
 	ImGuiIO* m_ioImGui = nullptr;
 
 	// Scene
+	std::unique_ptr<Scene> scene;
 	std::shared_ptr<Camera> ActiveCamera;
 	std::shared_ptr<MeshRenderer> RaymarchFullscreenMeshRenderer;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> RaymarchConstBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> RenderSettingsConstantBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> CameraConstantBuffer;
 };

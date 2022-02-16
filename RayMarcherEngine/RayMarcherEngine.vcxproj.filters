@@ -57,6 +57,9 @@
     <ClInclude Include="External\imgui\ImGuiFileDialog\ImGuiFileDialog.h">
       <Filter>External\imgui\ImGuiFileDialog</Filter>
     </ClInclude>
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="GameObject.h" />
+    <ClInclude Include="SDFGenerator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -90,6 +93,9 @@
     <ClCompile Include="External\imgui\ImGuiFileDialog\ImGuiFileDialog.cpp">
       <Filter>External\imgui\ImGuiFileDialog</Filter>
     </ClCompile>
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="SDFGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -118,6 +124,9 @@
     </None>
     <None Include="VertexShader.cso">
       <Filter>Shaders\Compiled</Filter>
+    </None>
+    <None Include="GeneratedPSHeader.hlsli">
+      <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>
