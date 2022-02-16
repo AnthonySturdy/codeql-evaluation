@@ -1,5 +1,3 @@
-#include "GeneratedPSHeader.hlsli"
-
 #define OBJECT_COUNT 10
 
 struct PS_INPUT {
@@ -86,30 +84,7 @@ float sdSphere(float3 p, float s)
     return length(p) - s;
 }
 
-float GetDistanceToScene(float3 p, out int index) {
-   float dist = renderSettings.maxDist;
-   int objIndex = 0;
-    
-   for (uint i = 0; i < OBJECT_COUNT; ++i) {
-       if(!object[i].isActive)
-           break;
-       
-        float dists[5]; // Precalculate distances to avoid branching code
-        dists[0] = sdSphere(p - object[i].position, object[i].params.x);
-        dists[1] = sdBox(p - object[i].position, object[i].params);
-        dists[2] = sdTorus(p - object[i].position, object[i].params);
-        dists[3] = sdCone(p - object[i].position, object[i].params.xy, object[i].params.z);
-        dists[4] = sdCappedCylinder(p - object[i].position, object[i].params.x, object[i].params.y);
-
-        float prevDist = dist;
-        dist = min(dist, dists[object[i].objectType]);
-        objIndex = lerp(objIndex, i, prevDist != dist);
-    }
-    
-    index = objIndex;
-    
-    return dist;
-}
+#include "GeneratedSceneDistance.hlsli"
 
 float3 CalculateNormal(float3 p) {
     const float2 offset = float2(0.001f, 0.0f);

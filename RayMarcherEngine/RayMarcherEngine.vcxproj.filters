@@ -125,7 +125,7 @@
     <None Include="VertexShader.cso">
       <Filter>Shaders\Compiled</Filter>
     </None>
-    <None Include="GeneratedPSHeader.hlsli">
+    <None Include="GeneratedSceneDistance.hlsli">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

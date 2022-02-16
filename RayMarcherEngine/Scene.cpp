@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Scene.h"
 #include "Structures.h"
+#include "SDFGenerator.h"
 
 Scene::Scene(ID3D11Device* device)
 {
@@ -16,13 +17,12 @@ void Scene::Update(float dt, ID3D11Device* device) { }
 void Scene::Render(ID3D11DeviceContext* context)
 {
 	// Update constant buffers
-	ImGui::Begin("Scene Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-
 	static ConstantBuffer::WorldObject objects[OBJECT_COUNT];
 	for (int i = 0; i < GameObjects.size(); i++)
+	{
+		GameObjects[i].RenderGUIControls();
 		objects[i] = GameObjects[i];
-
-	ImGui::End();
+	}
 
 	context->UpdateSubresource(GameObjectsConstantBuffer.Get(), 0, nullptr, &objects, 0, 0);
 	context->PSSetConstantBuffers(2, 1, GameObjectsConstantBuffer.GetAddressOf());

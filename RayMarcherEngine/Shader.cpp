@@ -1,8 +1,12 @@
 #include "pch.h"
 #include "Shader.h"
 
+#include "SDFGenerator.h"
+
 Shader::Shader(ID3D11Device* device, const WCHAR* vertexShaderPathWithoutExt, const WCHAR* pixelShaderPathWithoutExt, D3D11_INPUT_ELEMENT_DESC* vertexLayout, UINT numElements)
 {
+	SDFGenerator::WriteToShaderFile(SDFGenerator::GetSceneDistanceFunction());
+
 	// Compile and create Vertex shader
 	ID3DBlob* vsBlob = nullptr;
 	std::wstring vertShaderHlsl(vertexShaderPathWithoutExt);

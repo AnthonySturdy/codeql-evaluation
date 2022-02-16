@@ -11,6 +11,8 @@ public:
 	GameObject& operator=(GameObject&&) = default;
 	~GameObject() = default;
 
+	void RenderGUIControls();
+
 	operator ConstantBuffer::WorldObject() const
 	{
 		ConstantBuffer::WorldObject obj;
