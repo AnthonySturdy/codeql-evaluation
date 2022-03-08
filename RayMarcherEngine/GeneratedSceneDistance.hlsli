@@ -1,5 +1,9 @@
 float GetDistanceToScene(float3 p, out int index)
 {
-    index = 0;
-    return 0;
+    float dist = renderSettings.maxDist; 
+	int objIndex = 0;
+
+
+	index = objIndex; 
+	return dist;
 }
