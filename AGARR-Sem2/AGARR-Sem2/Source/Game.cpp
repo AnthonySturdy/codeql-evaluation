@@ -4,7 +4,7 @@
 #include "Game/Components/CameraComponent.h"
 #include "Game/Components/MeshRendererComponent.h"
 #include "Game/Components/TransformComponent.h"
-#include "Rendering/RenderPassGeometry.h"
+#include "Rendering/RenderPassDefault.h"
 
 extern void ExitGame() noexcept;
 
@@ -34,8 +34,8 @@ void Game::Initialize(HWND window, int width, int height)
 	ImGuiIO& io = ImGui::GetIO();
 	(void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable Docking
-	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   // Enable Multi-Viewport / Platform Windows
 
 	ImGui::StyleColorsDark();
 	ImGuiStyle& style = ImGui::GetStyle();
@@ -49,7 +49,7 @@ void Game::Initialize(HWND window, int width, int height)
 	ImGui_ImplDX11_Init(DX::DeviceResources::Instance()->GetD3DDevice(), DX::DeviceResources::Instance()->GetD3DDeviceContext());
 
 	// Create and Initialise render pipeline
-	RenderPipeline.push_back(std::make_unique<RenderPassGeometry>(GameObjects));
+	RenderPipeline.push_back(std::make_unique<RenderPassDefault>(GameObjects));
 	for (auto& rp : RenderPipeline)
 		rp->Initialise();
 
@@ -73,7 +73,8 @@ void Game::Initialize(HWND window, int width, int height)
 // Executes the basic game loop.
 void Game::Tick()
 {
-	m_timer.Tick([&]() {
+	m_timer.Tick([&]()
+	{
 		Update(m_timer);
 	});
 
@@ -117,8 +118,8 @@ void Game::Render()
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 	ImGui::Begin("Viewport");
-	static RECT staticVpSize = { 0, 0, 0, 0 };
-	const RECT curVpSize = { 0, 0, static_cast<long>(ImGui::GetContentRegionAvail().x), static_cast<long>(ImGui::GetContentRegionAvail().y) };
+	static RECT staticVpSize = {0, 0, 0, 0};
+	const RECT curVpSize = {0, 0, static_cast<long>(ImGui::GetContentRegionAvail().x), static_cast<long>(ImGui::GetContentRegionAvail().y)};
 	if (staticVpSize != curVpSize)
 	{
 		staticVpSize = curVpSize;
@@ -127,7 +128,7 @@ void Game::Render()
 		for (const auto& rp : RenderPipeline)
 			rp->Initialise();
 	}
-	ImGui::Image(reinterpret_cast<RenderPassGeometry*>(RenderPipeline[0].get())->GetSRV(),
+	ImGui::Image(reinterpret_cast<RenderPassDefault*>(RenderPipeline[0].get())->GetSRV(),
 	             ImGui::GetContentRegionAvail());
 	ImGui::End();
 	ImGui::PopStyleVar();

@@ -199,7 +199,7 @@
     <ClInclude Include="Source\Game\GameObject.h" />
     <ClInclude Include="Source\pch.h" />
     <ClInclude Include="Source\Rendering\RenderPass.h" />
-    <ClInclude Include="Source\Rendering\RenderPassGeometry.h" />
+    <ClInclude Include="Source\Rendering\RenderPassDefault.h" />
     <ClInclude Include="Source\Utility\StepTimer.h" />
     <ClInclude Include="Source\Game\Components\TransformComponent.h" />
   </ItemGroup>
@@ -312,7 +312,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="Source\Rendering\RenderPassGeometry.cpp">
+    <ClCompile Include="Source\Rendering\RenderPassDefault.cpp">
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</PrecompiledHeaderFile>

@@ -1,12 +1,14 @@
 #include "pch.h"
-#include "Rendering/RenderPassGeometry.h"
+#include "Rendering/RenderPassDefault.h"
 
 #include "Game/GameObject.h"
 
-RenderPassGeometry::RenderPassGeometry(std::vector<GameObject*>& gameObjects)
-	: GameObjects(gameObjects) {}
+RenderPassDefault::RenderPassDefault(std::vector<GameObject*>& gameObjects)
+	: GameObjects(gameObjects)
+{
+}
 
-void RenderPassGeometry::Initialise()
+void RenderPassDefault::Initialise()
 {
 	const auto device = DX::DeviceResources::Instance()->GetD3DDevice();
 	const auto outputSize = DX::DeviceResources::Instance()->GetViewportSize();
@@ -63,7 +65,7 @@ void RenderPassGeometry::Initialise()
 	DX::ThrowIfFailed(device->CreateShaderResourceView(geometryPassResource.Get(), nullptr, RenderTargetSRV.ReleaseAndGetAddressOf()));
 }
 
-void RenderPassGeometry::Render()
+void RenderPassDefault::Render()
 {
 	const auto context = DX::DeviceResources::Instance()->GetD3DDeviceContext();
 	const auto outputSize = DX::DeviceResources::Instance()->GetViewportSize();
@@ -92,7 +94,7 @@ void RenderPassGeometry::Render()
 	context->OMSetRenderTargets(1, &nullRtv, nullDsv);
 }
 
-void RenderPassGeometry::RenderGUI()
+void RenderPassDefault::RenderGUI()
 {
 	ImGui::Begin("Scene View");
 

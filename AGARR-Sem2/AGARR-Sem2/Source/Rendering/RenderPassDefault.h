@@ -3,15 +3,15 @@
 
 class GameObject;
 
-class RenderPassGeometry : public RenderPass
+class RenderPassDefault : public RenderPass
 {
 public:
-	RenderPassGeometry(std::vector<GameObject*>& gameObjects);
-	RenderPassGeometry(const RenderPassGeometry&) = default;
-	RenderPassGeometry(RenderPassGeometry&&) = default;
-	RenderPassGeometry& operator=(const RenderPassGeometry&) = delete;
-	RenderPassGeometry& operator=(RenderPassGeometry&&) = delete;
-	~RenderPassGeometry() override = default;
+	RenderPassDefault(std::vector<GameObject*>& gameObjects);
+	RenderPassDefault(const RenderPassDefault&) = default;
+	RenderPassDefault(RenderPassDefault&&) = default;
+	RenderPassDefault& operator=(const RenderPassDefault&) = delete;
+	RenderPassDefault& operator=(RenderPassDefault&&) = delete;
+	~RenderPassDefault() override = default;
 
 	void Initialise() override;
 	void Render() override;

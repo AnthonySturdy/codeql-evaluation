@@ -19,23 +19,15 @@ struct VS_INPUT
 struct PS_INPUT
 {
     float4 Pos : SV_POSITION;
-    float4 WorldPos : POSITION;
-    float3 Normal : NORMAL;
     float2 TexCoord : TEXCOORD0;
 };
 
 PS_INPUT main(VS_INPUT Input)
 {
     PS_INPUT output = (PS_INPUT) 0;
-    output.Pos = mul(Input.Pos, World);
-    output.WorldPos = output.Pos;
-    output.Pos = mul(output.Pos, View);
-    output.Pos = mul(output.Pos, Projection);
 
+    output.Pos = Input.Pos;
     output.TexCoord = Input.Tex;
     
-    output.Normal = mul(Input.Norm, (float3x3) World);
-    output.Normal = normalize(output.Normal);
-
 	return output;
 }
