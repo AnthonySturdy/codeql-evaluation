@@ -6,7 +6,8 @@ class CameraComponent : public Component
 	struct CameraConstantBuffer
 	{
 		DirectX::SimpleMath::Matrix View{ DirectX::SimpleMath::Matrix::Identity };
-		DirectX::SimpleMath::Matrix Projection{ DirectX::SimpleMath::Matrix::Identity };
+		DirectX::SimpleMath::Vector3 Position{ DirectX::SimpleMath::Vector3::Zero };
+		float FOV{ 0.0f };
 	};
 
 public:
@@ -23,15 +24,10 @@ public:
 	void RenderGUI() override;
 
 	[[nodiscard]] float GetFOV() const { return FOV; }
-	[[nodiscard]] float GetNearPlane() const { return NearPlane; }
-	[[nodiscard]] float GetFarPlane() const { return FarPlane; }
+	void SetFOV(float val) { FOV = val; }
 
 	[[nodiscard]] DirectX::SimpleMath::Matrix GetViewMatrix() const;
-	[[nodiscard]] DirectX::SimpleMath::Matrix GetProjectionMatrix() const;
 
-	void SetFOV(float val) { FOV = val; }
-	void SetNearPlane(float val) { NearPlane = val; }
-	void SetFarPlane(float val) { FarPlane = val; }
 
 protected:
 	[[nodiscard]] std::string GetComponentName() const override { return "Camera"; }
@@ -40,8 +36,6 @@ private:
 	void CreateConstantBuffer();
 
 	float FOV;
-	float NearPlane;
-	float FarPlane;
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> ConstantBuffer;
 };

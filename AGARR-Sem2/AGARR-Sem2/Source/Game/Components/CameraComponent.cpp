@@ -4,17 +4,13 @@
 #include "Game/Components/TransformComponent.h"
 
 CameraComponent::CameraComponent()
-	: FOV(DirectX::XM_PIDIV2),
-	  NearPlane(0.01f),
-	  FarPlane(200.0f)
+	: FOV(DirectX::XM_PIDIV2)
 {
 	CreateConstantBuffer();
 }
 
 CameraComponent::CameraComponent(float fov, float nearPlane, float farPlane)
-	: FOV(fov),
-	  NearPlane(nearPlane),
-	  FarPlane(farPlane)
+	: FOV(fov)
 {
 	CreateConstantBuffer();
 }
@@ -37,32 +33,38 @@ void CameraComponent::Render()
 
 	static CameraConstantBuffer ccb = {};
 	ccb.View = XMMatrixTranspose(GetViewMatrix());
-	ccb.Projection = XMMatrixTranspose(GetProjectionMatrix());
+	ccb.Position = Parent->GetComponent<TransformComponent>()->GetPosition();
+	ccb.FOV = FOV;
 
 	context->UpdateSubresource(ConstantBuffer.Get(), 0, nullptr, &ccb, 0, 0);
 
-	context->VSSetConstantBuffers(0, 1, ConstantBuffer.GetAddressOf());
+	context->PSSetConstantBuffers(1, 1, ConstantBuffer.GetAddressOf());
 }
 
 void CameraComponent::RenderGUI()
 {
 	ImGui::SliderFloat("FOV", &FOV, 1.0f * 0.0174533, 160.0f * 0.0174533);
-	ImGui::DragFloat("Near Plane", &NearPlane, 0.001f, 0.001f, FarPlane - 0.001f);
-	ImGui::DragFloat("Far Plane", &FarPlane, 0.001f, NearPlane + 0.001f, 5000.0f);
 }
 
 DirectX::SimpleMath::Matrix CameraComponent::GetViewMatrix() const
 {
+	// Modified version of: https://www.braynzarsoft.net/viewtutorial/q16390-19-first-person-camera
+	// Convert euler rotation to view matrix
+
 	const TransformComponent* transform = Parent->GetComponent<TransformComponent>();
 
 	const DirectX::SimpleMath::Vector3 eye = transform->GetPosition();
 	const DirectX::SimpleMath::Vector3 dir = transform->GetRotation();
-	const DirectX::SimpleMath::Vector3 up = DirectX::SimpleMath::Vector3::Up;
 
-	return DirectX::XMMatrixLookAtLH(eye, dir, up);
-}
+	// Pitch and Yaw
+	const DirectX::SimpleMath::Matrix camRotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(dir.x, dir.y, 0);
+	DirectX::SimpleMath::Vector3 camTarget = DirectX::XMVector3TransformCoord(DirectX::SimpleMath::Vector3::Forward, camRotationMatrix);
+	camTarget.Normalize();
+	camTarget += eye;
 
-DirectX::SimpleMath::Matrix CameraComponent::GetProjectionMatrix() const
-{
-	return DirectX::XMMatrixPerspectiveFovLH(FOV, DX::DeviceResources::Instance()->GetViewportAspectRatio(), NearPlane, FarPlane);
+	// Roll
+	const DirectX::SimpleMath::Matrix camYRotationMatrix = DirectX::XMMatrixRotationZ(dir.z);
+	const DirectX::SimpleMath::Vector3 camUp = DirectX::XMVector3TransformCoord(DirectX::SimpleMath::Vector3::Up, camYRotationMatrix);
+
+	return DirectX::XMMatrixLookAtLH(eye, camTarget, camUp);
 }

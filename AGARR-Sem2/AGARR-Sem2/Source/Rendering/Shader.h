@@ -17,6 +17,8 @@ public:
 	[[nodiscard]] ID3D11InputLayout* GetInputLayout() const { return InputLayout.Get(); }
 
 private:
+	HRESULT CompileShaderFromFile(const WCHAR* fileName, LPCSTR entryPoint, LPCSTR shaderModel, ID3DBlob** blobOut);
+
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> VertexShader;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> PixelShader;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> InputLayout;
