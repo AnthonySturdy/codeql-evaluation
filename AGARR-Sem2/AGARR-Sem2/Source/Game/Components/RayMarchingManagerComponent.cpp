@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "RayMarchingManagerComponent.h"
 
+#include "MeshRendererComponent.h"
+#include "SDFManagerComponent.h"
 #include "TransformComponent.h"
 
 RayMarchingManagerComponent::RayMarchingManagerComponent(const std::vector<GameObject*>& gameObjects)
@@ -26,6 +28,39 @@ void RayMarchingManagerComponent::CreateConstantBuffers()
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
 	DX::ThrowIfFailed(device->CreateBuffer(&bd, nullptr, RayMarchSceneConstantBuffer.ReleaseAndGetAddressOf()));
+}
+
+void RayMarchingManagerComponent::Update(float deltaTime)
+{
+	// Generate scene distance shader
+	const auto rmObjects = GameObject::FindComponents<RayMarchObjectComponent>(GameObjects);
+
+	const auto sdfManager = Parent->GetComponent<SDFManagerComponent>();
+
+	std::string sdfs;
+	for (const auto& go : rmObjects)
+	{
+		std::string goSdf = sdfManager->GenerateSignedDistanceFunction(go->GetSDFType());
+		if (!sdfs.contains(goSdf))
+			sdfs += goSdf;
+	};
+
+	// Use hash to prevent unnecessary shader changes
+	static constexpr std::hash<std::string> hash;
+	static size_t prevSdfHash = hash("");
+	const size_t curSdfHash = hash(sdfs + std::to_string(rmObjects.size()));
+	if (curSdfHash != prevSdfHash)
+	{
+		prevSdfHash = curSdfHash;
+
+		sdfManager->WriteStringToHeaderShader(sdfs);
+		sdfManager->WriteSceneDistanceFunctionToShaderHeader(sdfManager->GenerateSceneDistanceFunctionContents(rmObjects));
+
+		// Recompile pixel shader
+		const auto meshRenderer = Parent->GetComponent<MeshRendererComponent>();
+		const auto shader = meshRenderer->GetShader();
+		shader->CreatePixelShader();
+	}
 }
 
 void RayMarchingManagerComponent::Render()

@@ -54,7 +54,7 @@ DirectX::SimpleMath::Matrix CameraComponent::GetViewMatrix() const
 	const TransformComponent* transform = Parent->GetComponent<TransformComponent>();
 
 	const DirectX::SimpleMath::Vector3 eye = transform->GetPosition();
-	const DirectX::SimpleMath::Vector3 dir = transform->GetRotation();
+	const DirectX::SimpleMath::Vector3 dir = transform->GetRotation() * 0.01745329f;
 
 	// Pitch and Yaw
 	const DirectX::SimpleMath::Matrix camRotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(dir.x, dir.y, 0);

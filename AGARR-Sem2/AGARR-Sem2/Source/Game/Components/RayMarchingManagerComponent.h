@@ -42,7 +42,7 @@ public:
 	RayMarchingManagerComponent& operator=(RayMarchingManagerComponent&&) = default;
 	~RayMarchingManagerComponent() override = default;
 
-	void Update(float deltaTime) override {};
+	void Update(float deltaTime) override;
 	void Render() override;
 	void RenderGUI() override;
 

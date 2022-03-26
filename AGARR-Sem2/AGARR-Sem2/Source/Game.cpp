@@ -6,6 +6,7 @@
 #include "Game/Components/TransformComponent.h"
 #include "Game/Components/RayMarchingManagerComponent.h"
 #include "Game/Components/RayMarchObjectComponent.h"
+#include "Game/Components/SDFManagerComponent.h"
 #include "Rendering/RenderPassDefault.h"
 
 extern void ExitGame() noexcept;
@@ -58,7 +59,9 @@ void Game::Initialize(HWND window, int width, int height)
 	// Create GameObjects
 	GameObjects.push_back(new GameObject("Ray March Manager"));
 	const auto manager = GameObjects[0];
+	manager->AddComponent(new MeshRendererComponent());
 	manager->AddComponent(new RayMarchingManagerComponent(GameObjects));
+	manager->AddComponent(new SDFManagerComponent());
 
 	GameObjects.push_back(new GameObject("Camera"));
 	const auto cam = GameObjects[1];
@@ -66,12 +69,8 @@ void Game::Initialize(HWND window, int width, int height)
 	TransformComponent* camTransf = cam->GetComponent<TransformComponent>();
 	camTransf->SetPosition(SimpleMath::Vector3(-2.0f, 0.0f, 5.0f));
 
-	GameObjects.push_back(new GameObject("Render Plane"));
-	const auto drawPlane = GameObjects[2];
-	drawPlane->AddComponent(new MeshRendererComponent());
-
 	GameObjects.push_back(new GameObject("Sphere"));
-	const auto rmObj = GameObjects[3];
+	const auto rmObj = GameObjects[2];
 	rmObj->AddComponent(new RayMarchObjectComponent());
 
 	// Vsync

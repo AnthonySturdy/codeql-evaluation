@@ -16,6 +16,9 @@ public:
 	[[nodiscard]] ID3D11PixelShader* GetPixelShader() const { return PixelShader.Get(); }
 	[[nodiscard]] ID3D11InputLayout* GetInputLayout() const { return InputLayout.Get(); }
 
+	void CreateVertexShaderAndInputLayout();
+	void CreatePixelShader();
+
 private:
 	HRESULT CompileShaderFromFile(const WCHAR* fileName, LPCSTR entryPoint, LPCSTR shaderModel, ID3DBlob** blobOut);
 

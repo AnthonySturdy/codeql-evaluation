@@ -2,11 +2,10 @@
 #include "Rendering/RenderPassDefault.h"
 
 #include "Game/GameObject.h"
+#include "Game/Components/RayMarchObjectComponent.h"
 
 RenderPassDefault::RenderPassDefault(std::vector<GameObject*>& gameObjects)
-	: GameObjects(gameObjects)
-{
-}
+	: GameObjects(gameObjects) {}
 
 void RenderPassDefault::Initialise()
 {
@@ -100,6 +99,14 @@ void RenderPassDefault::RenderGUI()
 
 	for (const auto go : GameObjects)
 		go->RenderGUI();
+
+	if (ImGui::Button("Add Ray Marched Object"))
+	{
+		const auto go = new GameObject("New Ray Marched Object");
+		go->AddComponent(new RayMarchObjectComponent());
+
+		GameObjects.push_back(go);
+	}
 
 	ImGui::End();
 }

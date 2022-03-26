@@ -7,6 +7,12 @@
 
 Shader::Shader()
 {
+	CreateVertexShaderAndInputLayout();
+	CreatePixelShader();
+}
+
+void Shader::CreateVertexShaderAndInputLayout()
+{
 	const auto device = DX::DeviceResources::Instance()->GetD3DDevice();
 
 	// Read and create Vertex shader
@@ -17,6 +23,20 @@ Shader::Shader()
 	                                             nullptr,
 	                                             VertexShader.ReleaseAndGetAddressOf()));
 
+	// Create the input layout
+	DX::ThrowIfFailed(device->CreateInputLayout(InputLayoutDesc,
+	                                            InLayoutNumElements,
+	                                            vsBlob->GetBufferPointer(),
+	                                            vsBlob->GetBufferSize(),
+	                                            InputLayout.ReleaseAndGetAddressOf()));
+
+	vsBlob->Release();
+}
+
+void Shader::CreatePixelShader()
+{
+	const auto device = DX::DeviceResources::Instance()->GetD3DDevice();
+
 	// Read and create Pixel shader
 	ID3DBlob* psBlob = nullptr;
 	DX::ThrowIfFailed(CompileShaderFromFile(L"Source/Rendering/Shaders/PixelShader.hlsl", "main", "ps_5_0", &psBlob));
@@ -25,15 +45,7 @@ Shader::Shader()
 	                                            nullptr,
 	                                            PixelShader.ReleaseAndGetAddressOf()));
 
-	// Create the input layout
-	DX::ThrowIfFailed(device->CreateInputLayout(InputLayoutDesc,
-	                                            InLayoutNumElements,
-	                                            vsBlob->GetBufferPointer(),
-	                                            vsBlob->GetBufferSize(),
-	                                            InputLayout.ReleaseAndGetAddressOf()));
-
 	// Release blobs
-	vsBlob->Release();
 	psBlob->Release();
 }
 
