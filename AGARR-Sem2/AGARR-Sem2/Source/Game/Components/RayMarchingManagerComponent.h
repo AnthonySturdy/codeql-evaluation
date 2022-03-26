@@ -1,5 +1,8 @@
 #pragma once
 #include "Game/GameObject.h"
+#include "Game/Components/RayMarchObjectComponent.h"
+
+#define RAYMARCH_MAX_OBJECTS 30
 
 class RayMarchingManagerComponent : public Component
 {
@@ -13,8 +16,19 @@ class RayMarchingManagerComponent : public Component
 		float PADDING[3]{};
 	};
 
+	struct RayMarchScene
+	{
+		struct Object
+		{
+			unsigned int BoolOperator{ 0u };
+			DirectX::SimpleMath::Vector3 Position{ DirectX::SimpleMath::Vector3::Zero };
+			unsigned int SDFType{ 0u };
+			DirectX::SimpleMath::Vector3 Parameters{ DirectX::SimpleMath::Vector3::One };
+		} ObjectsList[RAYMARCH_MAX_OBJECTS];
+	};
+
 public:
-	RayMarchingManagerComponent();
+	RayMarchingManagerComponent(const std::vector<GameObject*>& gameObjects);
 	RayMarchingManagerComponent(const RayMarchingManagerComponent&) = default;
 	RayMarchingManagerComponent(RayMarchingManagerComponent&&) = default;
 	RayMarchingManagerComponent& operator=(const RayMarchingManagerComponent&) = default;
@@ -29,7 +43,12 @@ protected:
 	[[nodiscard]] std::string GetComponentName() const override { return "Ray Marching Manager"; }
 
 private:
-	void CreateConstantBuffer();
-	RenderSettings RenderSettingsData;
+	void CreateConstantBuffers();
+
+	RenderSettings RenderSettingsData{};
+	RayMarchScene RayMarchSceneData{};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> RenderSettingsConstantBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> RayMarchSceneConstantBuffer;
+
+	const std::vector<GameObject*>& GameObjects;
 };

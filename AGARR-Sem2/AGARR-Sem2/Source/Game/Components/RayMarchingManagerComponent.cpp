@@ -1,12 +1,13 @@
 #include "pch.h"
 #include "RayMarchingManagerComponent.h"
 
-RayMarchingManagerComponent::RayMarchingManagerComponent()
+RayMarchingManagerComponent::RayMarchingManagerComponent(const std::vector<GameObject*>& gameObjects)
+	: GameObjects(gameObjects)
 {
-	CreateConstantBuffer();
+	CreateConstantBuffers();
 }
 
-void RayMarchingManagerComponent::CreateConstantBuffer()
+void RayMarchingManagerComponent::CreateConstantBuffers()
 {
 	const auto device = DX::DeviceResources::Instance()->GetD3DDevice();
 
@@ -16,13 +17,25 @@ void RayMarchingManagerComponent::CreateConstantBuffer()
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
 	DX::ThrowIfFailed(device->CreateBuffer(&bd, nullptr, RenderSettingsConstantBuffer.ReleaseAndGetAddressOf()));
+
+	bd = {};
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(RayMarchScene);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+	DX::ThrowIfFailed(device->CreateBuffer(&bd, nullptr, RayMarchSceneConstantBuffer.ReleaseAndGetAddressOf()));
 }
 
 void RayMarchingManagerComponent::Render()
 {
 	const auto context = DX::DeviceResources::Instance()->GetD3DDeviceContext();
+
+	// Update RenderSettings constant buffer
 	context->UpdateSubresource(RenderSettingsConstantBuffer.Get(), 0, nullptr, &RenderSettingsData, 0, 0);
 	context->PSSetConstantBuffers(0, 1, RenderSettingsConstantBuffer.GetAddressOf());
+
+	// Update R.M. Scene data constant buffer
+	const auto rmObjects = GameObject::FindComponents<RayMarchingManagerComponent>(GameObjects);
 }
 
 void RayMarchingManagerComponent::RenderGUI()

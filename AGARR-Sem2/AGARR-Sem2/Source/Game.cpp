@@ -5,6 +5,7 @@
 #include "Game/Components/MeshRendererComponent.h"
 #include "Game/Components/TransformComponent.h"
 #include "Game/Components/RayMarchingManagerComponent.h"
+#include "Game/Components/RayMarchObjectComponent.h"
 #include "Rendering/RenderPassDefault.h"
 
 extern void ExitGame() noexcept;
@@ -57,7 +58,7 @@ void Game::Initialize(HWND window, int width, int height)
 	// Create GameObjects
 	GameObjects.push_back(new GameObject());
 	const auto manager = GameObjects[0];
-	manager->AddComponent(new RayMarchingManagerComponent());
+	manager->AddComponent(new RayMarchingManagerComponent(GameObjects));
 
 	GameObjects.push_back(new GameObject());
 	const auto cam = GameObjects[1];
@@ -66,8 +67,12 @@ void Game::Initialize(HWND window, int width, int height)
 	camTransf->SetPosition(SimpleMath::Vector3(-2.0f, 5.0f, 5.0f));
 
 	GameObjects.push_back(new GameObject());
-	const auto cube = GameObjects[2];
-	cube->AddComponent(new MeshRendererComponent());
+	const auto drawPlane = GameObjects[2];
+	drawPlane->AddComponent(new MeshRendererComponent());
+
+	GameObjects.push_back(new GameObject());
+	const auto rmObj = GameObjects[3];
+	rmObj->AddComponent(new RayMarchObjectComponent());
 
 	// Vsync
 	m_timer.SetFixedTimeStep(true);

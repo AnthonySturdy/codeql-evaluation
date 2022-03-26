@@ -105,13 +105,13 @@ public:
 	}
 
 	template <typename T> requires std::is_base_of_v<Component, T>
-	[[nodiscard]] static std::vector<T*> FindComponents(std::vector<GameObject>& gameObjects)
+	[[nodiscard]] static std::vector<T*> FindComponents(const std::vector<GameObject*>& gameObjects)
 	{
 		std::vector<T*> returnComponents{};
 
 		for (auto& go : gameObjects)
 		{
-			std::vector<T*> goComps = go.GetComponents<T>();
+			std::vector<T*> goComps = go->GetComponents<T>();
 			if (goComps.size() != 0)
 				returnComponents.insert(returnComponents.end(), goComps.begin(), goComps.end());
 		}

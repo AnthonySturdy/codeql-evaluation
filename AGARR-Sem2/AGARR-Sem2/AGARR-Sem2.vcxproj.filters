@@ -37,6 +37,7 @@
     <ClInclude Include="External\imgui\imstb_textedit.h" />
     <ClInclude Include="External\imgui\imstb_truetype.h" />
     <ClInclude Include="Source\Game\Components\RayMarchingManagerComponent.h" />
+    <ClInclude Include="Source\Game\Components\RayMarchObjectComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\pch.cpp" />
@@ -63,6 +64,7 @@
     <ClCompile Include="External\imgui\imgui_tables.cpp" />
     <ClCompile Include="External\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Source\Game\Components\RayMarchingManagerComponent.cpp" />
+    <ClCompile Include="Source\Game\Components\RayMarchObjectComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
