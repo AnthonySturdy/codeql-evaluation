@@ -4,7 +4,7 @@
 #include "Game/Components/TransformComponent.h"
 
 CameraComponent::CameraComponent()
-	: FOV(DirectX::XM_PIDIV2)
+	: FOV(DirectX::XM_PIDIV4 * 2.5f)
 {
 	CreateConstantBuffer();
 }
@@ -32,7 +32,7 @@ void CameraComponent::Render()
 	const auto context = DX::DeviceResources::Instance()->GetD3DDeviceContext();
 
 	static CameraConstantBuffer ccb = {};
-	ccb.View = XMMatrixTranspose(GetViewMatrix());
+	ccb.View = GetViewMatrix();
 	ccb.Position = Parent->GetComponent<TransformComponent>()->GetPosition();
 	ccb.FOV = FOV;
 

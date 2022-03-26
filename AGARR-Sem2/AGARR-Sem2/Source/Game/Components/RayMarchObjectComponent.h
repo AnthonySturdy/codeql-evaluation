@@ -15,12 +15,15 @@ public:
 	void Render() override {};
 	void RenderGUI() override;
 
+	[[nodiscard]] int GetBoolOperator() const { return BoolOperator; }
+	[[nodiscard]] int GetSDFType() const { return SDFType; }
+	[[nodiscard]] DirectX::SimpleMath::Vector3 GetParameters() const { return Parameters; }
+
 protected:
 	[[nodiscard]] std::string GetComponentName() const override { return "Ray March Object"; }
 
 private:
-	unsigned int BoolOperator{ 0u };
-	unsigned int SDFType{ 0u };
-	DirectX::SimpleMath::Vector3 Position{ DirectX::SimpleMath::Vector3::Zero }; // TODO: Remove this - use transform
+	int BoolOperator{ 0 };
+	int SDFType{ 0 };
 	DirectX::SimpleMath::Vector3 Parameters{ DirectX::SimpleMath::Vector3::One };
 };

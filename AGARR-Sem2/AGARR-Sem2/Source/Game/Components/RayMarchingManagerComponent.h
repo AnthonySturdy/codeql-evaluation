@@ -20,10 +20,17 @@ class RayMarchingManagerComponent : public Component
 	{
 		struct Object
 		{
-			unsigned int BoolOperator{ 0u };
-			DirectX::SimpleMath::Vector3 Position{ DirectX::SimpleMath::Vector3::Zero };
-			unsigned int SDFType{ 0u };
+			DirectX::SimpleMath::Vector3 Position{ DirectX::SimpleMath::Vector4::Zero };
+			float pW{ 0.0f };
+			DirectX::SimpleMath::Vector3 Rotation{ DirectX::SimpleMath::Vector4::Zero };
+			float rW{ 0.0f };
+			DirectX::SimpleMath::Vector3 Scale{ DirectX::SimpleMath::Vector4::One };
+			float sW{ 0.0f };
 			DirectX::SimpleMath::Vector3 Parameters{ DirectX::SimpleMath::Vector3::One };
+			unsigned int SDFType{ 0u };
+			unsigned int BoolOperator{ 0u };
+
+			float PADDING[3]{};
 		} ObjectsList[RAYMARCH_MAX_OBJECTS];
 	};
 

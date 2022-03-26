@@ -21,10 +21,10 @@ public:
 	virtual void Render() = 0;
 	virtual void RenderGUI() = 0;
 
+	GameObject* Parent{ nullptr };
+
 protected:
 	[[nodiscard]] virtual std::string GetComponentName() const { return "Untitled Component"; }
-
-	GameObject* Parent{ nullptr };
 
 private:
 	bool Removable{ true };
@@ -34,6 +34,7 @@ class GameObject final
 {
 public:
 	GameObject();
+	GameObject(const std::string name);
 	GameObject(const GameObject&) = default;
 	GameObject(GameObject&&) = default;
 	GameObject& operator=(const GameObject&) = default;
@@ -132,5 +133,9 @@ public:
 
 
 private:
+	void AddTransform();
+
 	std::unordered_map<std::type_index, std::vector<std::shared_ptr<Component>>> Components{};
+
+	std::string Name{ "GameObject" };
 };

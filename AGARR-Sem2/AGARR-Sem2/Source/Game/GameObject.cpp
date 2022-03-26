@@ -8,6 +8,16 @@
 
 GameObject::GameObject()
 {
+	AddTransform();
+}
+
+GameObject::GameObject(const std::string name) : Name(name)
+{
+	AddTransform();
+}
+
+void GameObject::AddTransform()
+{
 	if (!GetComponent<TransformComponent>())
 	{
 		auto* comp = AddComponent(new TransformComponent());
@@ -31,9 +41,14 @@ void GameObject::Render()
 
 void GameObject::RenderGUI()
 {
-	const std::string goName = "GameObject (0x" + std::format("{:x}", reinterpret_cast<intptr_t>(this)) + ")";
-	if (ImGui::CollapsingHeader(goName.c_str()))
+	ImGui::PushID(this);
+
+	if (ImGui::CollapsingHeader((Name + "###").c_str()))
+	{
+		ImGui::InputText("Name", &Name);
+
 		for (const auto& [type, components] : Components)
+		{
 			for (const auto& component : components)
 			{
 				ImGui::PushID(component.get());
@@ -47,4 +62,8 @@ void GameObject::RenderGUI()
 				}
 				ImGui::PopID();
 			}
+		}
+	}
+
+	ImGui::PopID();
 }

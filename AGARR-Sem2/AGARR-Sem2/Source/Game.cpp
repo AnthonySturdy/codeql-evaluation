@@ -56,21 +56,21 @@ void Game::Initialize(HWND window, int width, int height)
 		rp->Initialise();
 
 	// Create GameObjects
-	GameObjects.push_back(new GameObject());
+	GameObjects.push_back(new GameObject("Ray March Manager"));
 	const auto manager = GameObjects[0];
 	manager->AddComponent(new RayMarchingManagerComponent(GameObjects));
 
-	GameObjects.push_back(new GameObject());
+	GameObjects.push_back(new GameObject("Camera"));
 	const auto cam = GameObjects[1];
 	cam->AddComponent(new CameraComponent());
 	TransformComponent* camTransf = cam->GetComponent<TransformComponent>();
-	camTransf->SetPosition(SimpleMath::Vector3(-2.0f, 5.0f, 5.0f));
+	camTransf->SetPosition(SimpleMath::Vector3(-2.0f, 0.0f, 5.0f));
 
-	GameObjects.push_back(new GameObject());
+	GameObjects.push_back(new GameObject("Render Plane"));
 	const auto drawPlane = GameObjects[2];
 	drawPlane->AddComponent(new MeshRendererComponent());
 
-	GameObjects.push_back(new GameObject());
+	GameObjects.push_back(new GameObject("Sphere"));
 	const auto rmObj = GameObjects[3];
 	rmObj->AddComponent(new RayMarchObjectComponent());
 
