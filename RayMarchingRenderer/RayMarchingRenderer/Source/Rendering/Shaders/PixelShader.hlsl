@@ -50,7 +50,6 @@ cbuffer RayMarchScene : register(b2)
 struct Ray
 {
     bool hit;
-    uint hitObjectIndex;
     float3 hitPosition;
     float3 hitNormal;
     float depth;
@@ -62,10 +61,9 @@ float3 CalculateNormal(float3 p)
 {
     const float2 offset = float2(0.001f, 0.0f);
 
-    int index;
-    float3 normal = float3(GetDistanceToScene(p + offset.xyy, index) - GetDistanceToScene(p - offset.xyy, index),
-                           GetDistanceToScene(p + offset.yxy, index) - GetDistanceToScene(p - offset.yxy, index),
-                           GetDistanceToScene(p + offset.yyx, index) - GetDistanceToScene(p - offset.yyx, index));
+    float3 normal = float3(GetDistanceToScene(p + offset.xyy) - GetDistanceToScene(p - offset.xyy),
+                           GetDistanceToScene(p + offset.yxy) - GetDistanceToScene(p - offset.yxy),
+                           GetDistanceToScene(p + offset.yyx) - GetDistanceToScene(p - offset.yyx));
 
     return normalize(normal);
 }
@@ -75,7 +73,6 @@ Ray RayMarch(float3 ro, float3 rd)
     // Initialise ray
     Ray ray;
     ray.hit = false;
-    ray.hitObjectIndex = 0;
     ray.hitPosition = float3(0.0f, 0.0f, 0.0f);
     ray.hitNormal = float3(0.0f, 0.0f, 0.0f);
     ray.depth = 0.0f;
@@ -85,13 +82,12 @@ Ray RayMarch(float3 ro, float3 rd)
     for (; ray.stepCount < renderSettings.maxSteps; ++ray.stepCount)
     {
         int index;
-        float curDist = GetDistanceToScene(ro + rd * ray.depth, index);
+        float curDist = GetDistanceToScene(ro + rd * ray.depth);
 
         // If distance less than threshold, ray has intersected
         if (curDist < renderSettings.intersectionThreshold)
         {
             ray.hit = true;
-            ray.hitObjectIndex = ceil(index);
             ray.hitPosition = ro + rd * ray.depth;
             ray.hitNormal = CalculateNormal(ray.hitPosition);
                     

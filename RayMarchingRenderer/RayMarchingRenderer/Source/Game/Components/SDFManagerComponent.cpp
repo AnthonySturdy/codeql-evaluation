@@ -45,15 +45,15 @@ std::string SDFManagerComponent::GenerateSignedDistanceFunction(int objectType) 
 
 std::string SDFManagerComponent::GenerateSceneDistanceFunctionContents(const std::vector<RayMarchObjectComponent*>& raymarchObjects) const
 {
-	std::string objectsDistanceCheck = "";
+	std::string objectsDistanceCheck;
 	for (int i = 0; i < raymarchObjects.size(); i++)
 	{
 		std::string index = std::to_string(i);
 		objectsDistanceCheck += "\tdist = min(dist, sdf" + SDFFuncContents[raymarchObjects[i]->GetSDFType() % SDFFuncContents.size()].first;
-		objectsDistanceCheck += +"(p - ObjectsList[" + index + "].Position, ObjectsList[" + index + "].Parameters));\n";
+		objectsDistanceCheck += +"(Rotate(Translate(p, ObjectsList[" + index + "].Position), ObjectsList[" + index + "].Rotation) / ObjectsList[" + index + "].Scale.x, ObjectsList[" + index + "].Parameters) * ObjectsList[" + index + "].Scale.x);\n";
 	}
 
-	return "float dist = renderSettings.maxDist; \n\tint objIndex = 0;\n\n" + objectsDistanceCheck + "\n\tindex = objIndex; \n\treturn dist;";
+	return "float dist = renderSettings.maxDist;\n\n" + objectsDistanceCheck + "\n\treturn dist;";
 }
 
 void SDFManagerComponent::WriteStringToHeaderShader(const std::string content, std::ios_base::openmode writeMode) const

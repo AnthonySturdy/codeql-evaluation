@@ -82,9 +82,11 @@ void RayMarchingManagerComponent::Render()
 		if (i < rmObjects.size())
 		{
 			const auto transform = rmObjects[i]->Parent->GetComponent<TransformComponent>();
+
 			RayMarchSceneData.ObjectsList[i].Position = transform->GetPosition();
 			RayMarchSceneData.ObjectsList[i].Rotation = transform->GetRotation();
 			RayMarchSceneData.ObjectsList[i].Scale = transform->GetScale();
+
 			RayMarchSceneData.ObjectsList[i].Parameters = rmObjects[i]->GetParameters();
 			RayMarchSceneData.ObjectsList[i].SDFType = rmObjects[i]->GetSDFType();
 			RayMarchSceneData.ObjectsList[i].BoolOperator = rmObjects[i]->GetBoolOperator();

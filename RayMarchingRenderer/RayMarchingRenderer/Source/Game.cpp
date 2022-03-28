@@ -67,7 +67,7 @@ void Game::Initialize(HWND window, int width, int height)
 	const auto cam = GameObjects[1];
 	cam->AddComponent(new CameraComponent());
 	TransformComponent* camTransf = cam->GetComponent<TransformComponent>();
-	camTransf->SetPosition(SimpleMath::Vector3(-2.0f, 0.0f, 5.0f));
+	camTransf->SetPosition(SimpleMath::Vector3(0.0f, 0.0f, 5.0f));
 
 	GameObjects.push_back(new GameObject("Sphere"));
 	const auto rmObj = GameObjects[2];
