@@ -1,5 +1,5 @@
-float sdfCylinder(float3 p, float3 param){
-	float2 d = abs(float2(length(p.xz), p.y)) - float2(param.x, param.y); return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
+float sdfSphere(float3 p, float3 param){
+	return length(p) - param.x;
 }
 
 // Transformation functions
@@ -30,7 +30,7 @@ float GetDistanceToScene(float3 p)
 {
     float dist = renderSettings.maxDist;
 
-	dist = min(dist, sdfCylinder(Rotate(Translate(p, ObjectsList[0].Position), ObjectsList[0].Rotation) / ObjectsList[0].Scale.x, ObjectsList[0].Parameters) * ObjectsList[0].Scale.x);
+	dist = min(dist, sdfSphere(Rotate(Translate(p, ObjectsList[0].Position), ObjectsList[0].Rotation) / ObjectsList[0].Scale.x, ObjectsList[0].Parameters) * ObjectsList[0].Scale.x);
 
 	return dist;
 }

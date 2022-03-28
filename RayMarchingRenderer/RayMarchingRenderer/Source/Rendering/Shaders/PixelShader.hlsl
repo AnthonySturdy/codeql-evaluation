@@ -44,6 +44,21 @@ cbuffer RayMarchScene : register(b2)
 	} ObjectsList[RAYMARCH_MAX_OBJECTS];
 }
 
+#define RAYMARCH_MAX_LIGHTS 10
+cbuffer RayMarchLights : register(b3)
+{
+	struct Light
+	{
+		float4 Position;
+		float3 Colour;
+		float ConstantAttenuation;
+		float LinearAttenuation;
+		float QuadraticAttenuation;
+
+		float2 PADDING;
+	} LightsList[RAYMARCH_MAX_LIGHTS];
+};
+
 #include "GeneratedSceneDistance.hlsli"
 
 // Ray Marching
@@ -118,9 +133,8 @@ float4 main(PS_INPUT Input) : SV_TARGET
     Ray ray = RayMarch(ro, rd);
     if (ray.hit)
     {
-        finalColour = float4(ray.hitNormal * .5 + .5, 1.0f);
+        float d = dot(ray.hitNormal, normalize(LightsList[0].Position.xyz - ray.hitPosition));
+        finalColour = float4((ray.hitNormal * .5 + .5) * d, 1.0f);
     }
-
-    //return float4(rd, 1.0f);
     return finalColour;
 }

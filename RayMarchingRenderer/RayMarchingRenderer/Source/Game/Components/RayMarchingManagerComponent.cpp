@@ -2,6 +2,7 @@
 #include "RayMarchingManagerComponent.h"
 
 #include "MeshRendererComponent.h"
+#include "RayMarchLightComponent.h"
 #include "SDFManagerComponent.h"
 #include "TransformComponent.h"
 
@@ -28,6 +29,13 @@ void RayMarchingManagerComponent::CreateConstantBuffers()
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = 0;
 	DX::ThrowIfFailed(device->CreateBuffer(&bd, nullptr, RayMarchSceneConstantBuffer.ReleaseAndGetAddressOf()));
+
+	bd = {};
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(RayMarchLights);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+	DX::ThrowIfFailed(device->CreateBuffer(&bd, nullptr, RayMarchLightConstantBuffer.ReleaseAndGetAddressOf()));
 }
 
 void RayMarchingManagerComponent::Update(float deltaTime)
@@ -99,6 +107,28 @@ void RayMarchingManagerComponent::Render()
 	}
 	context->UpdateSubresource(RayMarchSceneConstantBuffer.Get(), 0, nullptr, &RayMarchSceneData, 0, 0);
 	context->PSSetConstantBuffers(2, 1, RayMarchSceneConstantBuffer.GetAddressOf());
+
+	// Update R.M. Lights data constant buffer
+	const auto rmLights = GameObject::FindComponents<RayMarchLightComponent>(GameObjects);
+	for (int i = 0; i < RAYMARCH_MAX_LIGHTS; ++i)
+	{
+		if (i < rmLights.size())
+		{
+			const auto transform = rmLights[i]->Parent->GetComponent<TransformComponent>();
+
+			RayMarchLightData.LightsList[i].Position = transform->GetPosition();
+			RayMarchLightData.LightsList[i].Colour = rmLights[i]->GetColour();
+			RayMarchLightData.LightsList[i].ConstantAttenuation = rmLights[i]->GetConstantAttenuation();
+			RayMarchLightData.LightsList[i].LinearAttenuation = rmLights[i]->GetLinearAttenuation();
+			RayMarchLightData.LightsList[i].QuadraticAttenuation = rmLights[i]->GetQuadraticAttenuation();
+		}
+		else
+		{
+			RayMarchLightData.LightsList[i] = {};
+		}
+	}
+	context->UpdateSubresource(RayMarchLightConstantBuffer.Get(), 0, nullptr, &RayMarchLightData, 0, 0);
+	context->PSSetConstantBuffers(3, 1, RayMarchLightConstantBuffer.GetAddressOf());
 }
 
 void RayMarchingManagerComponent::RenderGUI()
