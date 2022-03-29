@@ -11,13 +11,8 @@ public:
 	RayMarchLightComponent& operator=(RayMarchLightComponent&&) = default;
 	~RayMarchLightComponent() override = default;
 
-	void Update(float deltaTime) override
-	{
-	};
-
-	void Render() override
-	{
-	};
+	void Update(float deltaTime) override { };
+	void Render() override { };
 	void RenderGUI() override;
 
 	[[nodiscard]] DirectX::SimpleMath::Vector3 GetColour() const { return Colour; }
@@ -29,8 +24,8 @@ protected:
 	[[nodiscard]] std::string GetComponentName() const override { return "Ray March Light"; }
 
 private:
-	DirectX::SimpleMath::Vector3 Colour{DirectX::SimpleMath::Vector3::One};
-	float ConstantAttenuation{1.0f};
-	float LinearAttenuation{0.1f};
-	float QuadraticAttenuation{0.01f};
+	DirectX::SimpleMath::Vector3 Colour{ DirectX::SimpleMath::Vector3::One };
+	float ConstantAttenuation{ 1.0f };
+	float LinearAttenuation{ 0.1f };
+	float QuadraticAttenuation{ 0.01f };
 };
