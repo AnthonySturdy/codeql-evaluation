@@ -118,6 +118,7 @@ void RayMarchingManagerComponent::Render()
 
 			RayMarchLightData.LightsList[i].Position = transform->GetPosition();
 			RayMarchLightData.LightsList[i].Colour = rmLights[i]->GetColour();
+			RayMarchLightData.LightsList[i].ShadowSharpness = rmLights[i]->GetShadowSharpness();
 			RayMarchLightData.LightsList[i].ConstantAttenuation = rmLights[i]->GetConstantAttenuation();
 			RayMarchLightData.LightsList[i].LinearAttenuation = rmLights[i]->GetLinearAttenuation();
 			RayMarchLightData.LightsList[i].QuadraticAttenuation = rmLights[i]->GetQuadraticAttenuation();

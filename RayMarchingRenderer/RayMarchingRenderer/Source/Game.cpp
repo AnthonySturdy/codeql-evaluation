@@ -157,6 +157,10 @@ void Game::Render()
 	for (const auto& rp : RenderPipeline)
 		rp->RenderGUI();
 
+	ImGui::Begin("Performance", (bool*)0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
+	ImGui::Text("%.3fms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	ImGui::End();
+
 	// Render ImGui to backbuffer
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

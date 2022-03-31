@@ -16,6 +16,7 @@ public:
 	void RenderGUI() override;
 
 	[[nodiscard]] DirectX::SimpleMath::Vector3 GetColour() const { return Colour; }
+	[[nodiscard]] float GetShadowSharpness() const { return ShadowSharpness; }
 	[[nodiscard]] float GetConstantAttenuation() const { return ConstantAttenuation; }
 	[[nodiscard]] float GetLinearAttenuation() const { return LinearAttenuation; }
 	[[nodiscard]] float GetQuadraticAttenuation() const { return QuadraticAttenuation; }
@@ -25,6 +26,7 @@ protected:
 
 private:
 	DirectX::SimpleMath::Vector3 Colour{ DirectX::SimpleMath::Vector3::One };
+	float ShadowSharpness{ 32.0f };
 	float ConstantAttenuation{ 0.5f };
 	float LinearAttenuation{ 0.1f };
 	float QuadraticAttenuation{ 0.01f };

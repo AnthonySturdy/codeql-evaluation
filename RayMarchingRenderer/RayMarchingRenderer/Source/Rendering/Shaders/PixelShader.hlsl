@@ -51,11 +51,12 @@ cbuffer RayMarchLights : register(b3)
 	{
 		float4 Position;
 		float3 Colour;
+        float ShadowSharpness;
 		float ConstantAttenuation;
 		float LinearAttenuation;
 		float QuadraticAttenuation;
 
-		float2 PADDING;
+		float PADDING;
 	} LightsList[RAYMARCH_MAX_LIGHTS];
 };
 
@@ -93,6 +94,7 @@ Ray RayMarch(float3 ro, float3 rd)
     ray.stepCount = 0;
     
     // Step along ray direction
+    [loop]
     for (; ray.stepCount < renderSettings.maxSteps; ++ray.stepCount)
     {
         float curDist = GetDistanceToScene(ro + rd * ray.depth);
@@ -123,19 +125,22 @@ float ShadowMarch(float3 ro, int lightIdx)
     const float3 rd = normalize(LightsList[lightIdx].Position.xyz - ro);
 
     float depth = 0;
+    [loop]
     for (int i = 0; i < renderSettings.maxSteps; ++i)
     {
-        const float curDist = GetDistanceToScene(ro + rd * depth);
+        const float3 p = ro + rd * depth;
+        const float curDist = GetDistanceToScene(p);
 
-        // If able to become close to light, there is no shadow.
-        if ((distance(ro + rd * depth, LightsList[lightIdx].Position.xyz) - 0.05f) < renderSettings.intersectionThreshold)
+        // If ray is able to become close to light, there is no shadow.
+        if (dot(normalize(LightsList[lightIdx].Position.xyz - p), rd) < 0)
             break;
 
         // If distance less than threshold, ray has intersected
         if (curDist < renderSettings.intersectionThreshold)
             return 0.0f;
 
-        result = min(result, 32 * curDist / depth);
+        // Soft shadowing
+        result = min(result, LightsList[lightIdx].ShadowSharpness * curDist / depth);
         
         // Increment total depth by distance to light
         depth += curDist;
@@ -157,15 +162,15 @@ float3 CalculateLightColour(Ray ray)
         const float diffuse = saturate(dot(ray.hitNormal, normalize(LightsList[i].Position.xyz - ray.hitPosition)));
 
         float specular = 0.0f;
+        float shadowAmount = 1.0f;
         if (diffuse > 0.0f)
+        {
             specular = saturate(1.0f * pow(dot(rd, reflect(ray.hitNormal, normalize(LightsList[i].Position.xyz - ray.hitPosition))), 32.0f));
+            shadowAmount = ShadowMarch(ray.hitPosition + ray.hitNormal * renderSettings.intersectionThreshold * 2.0f, i);
+        }
 
         const float d = distance(ray.hitPosition, LightsList[i].Position.xyz);
         const float attentuation = 1.0f / (LightsList[i].ConstantAttenuation + LightsList[i].LinearAttenuation * d + LightsList[i].QuadraticAttenuation * d * d);
-
-        float shadowAmount = 1.0f;
-        if(i == 0)
-			shadowAmount = ShadowMarch(ray.hitPosition + ray.hitNormal * renderSettings.intersectionThreshold * 2.0f, i);
 
         lightCol += LightsList[i].Colour * ((diffuse * shadowAmount + specular) * attentuation);
     }

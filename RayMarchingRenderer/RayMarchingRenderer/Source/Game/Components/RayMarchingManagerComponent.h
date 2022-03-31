@@ -42,12 +42,13 @@ class RayMarchingManagerComponent : public Component
 			DirectX::SimpleMath::Vector3 Position{ DirectX::SimpleMath::Vector3::Zero };
 			float pW{ 0.0f };
 			DirectX::SimpleMath::Vector3 Colour{ DirectX::SimpleMath::Vector3::Zero };
+			float ShadowSharpness{ 32.0f };
 			float ConstantAttenuation{ 1.0f };
 			float LinearAttenuation{ 0.1f };
 			float QuadraticAttenuation{ 0.01f };
 
 
-			float PADDING[2]{};
+			float PADDING;
 		} LightsList[RAYMARCH_MAX_LIGHTS];
 	};
 
