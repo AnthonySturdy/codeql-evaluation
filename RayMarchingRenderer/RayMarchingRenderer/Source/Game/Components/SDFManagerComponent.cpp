@@ -56,7 +56,7 @@ std::string SDFManagerComponent::GenerateSceneDistanceFunctionContents(const std
 	return "float dist = renderSettings.maxDist;\n\n" + objectsDistanceCheck + "\n\treturn dist;";
 }
 
-void SDFManagerComponent::WriteStringToHeaderShader(const std::string content, std::ios_base::openmode writeMode) const
+void SDFManagerComponent::WriteStringToHeaderShader(const std::string& content, std::ios_base::openmode writeMode) const
 {
 	std::ofstream file;
 	file.open(ShaderHeaderPath, writeMode);

@@ -22,7 +22,7 @@ public:
 	[[nodiscard]] std::string GenerateSignedDistanceFunction(int objectType) const;
 	[[nodiscard]] std::string GenerateSceneDistanceFunctionContents(const std::vector<RayMarchObjectComponent*>& gameObjects) const;
 
-	void WriteStringToHeaderShader(std::string content, std::ios_base::openmode writeMode = std::ios_base::out) const;
+	void WriteStringToHeaderShader(const std::string& content, std::ios_base::openmode writeMode = std::ios_base::out) const;
 	void WriteSceneDistanceFunctionToShaderHeader(const std::string& funcContents) const;
 
 protected:

@@ -76,9 +76,9 @@ void RayMarchingManagerComponent::Render()
 	const auto context = DX::DeviceResources::Instance()->GetD3DDeviceContext();
 
 	// Update RenderSettings constant buffer
-	const auto ViewportSize = DX::DeviceResources::Instance()->GetViewportSize();
-	RenderSettingsData.Resolution[0] = ViewportSize.right;
-	RenderSettingsData.Resolution[1] = ViewportSize.bottom;
+	const auto viewportSize = DX::DeviceResources::Instance()->GetViewportSize();
+	RenderSettingsData.Resolution[0] = viewportSize.right;
+	RenderSettingsData.Resolution[1] = viewportSize.bottom;
 	context->UpdateSubresource(RenderSettingsConstantBuffer.Get(), 0, nullptr, &RenderSettingsData, 0, 0);
 	context->PSSetConstantBuffers(0, 1, RenderSettingsConstantBuffer.GetAddressOf());
 

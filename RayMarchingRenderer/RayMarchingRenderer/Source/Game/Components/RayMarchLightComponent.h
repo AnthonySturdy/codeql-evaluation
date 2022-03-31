@@ -25,7 +25,7 @@ protected:
 
 private:
 	DirectX::SimpleMath::Vector3 Colour{ DirectX::SimpleMath::Vector3::One };
-	float ConstantAttenuation{ 1.0f };
+	float ConstantAttenuation{ 0.5f };
 	float LinearAttenuation{ 0.1f };
 	float QuadraticAttenuation{ 0.01f };
 };
