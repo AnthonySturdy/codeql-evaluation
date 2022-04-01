@@ -8,6 +8,6 @@ void RayMarchObjectComponent::RenderGUI()
 
 	ImGui::DragFloat3("Parameters", &Parameters.x, 0.05f);
 
-	const char* csgOptions[3] = { "Add", "Subtract", "Intersect" };
+	const char* csgOptions[3] = { "Add", "Intersect", "Subtract" };
 	ImGui::Combo("Bool Operation", &BoolOperator, csgOptions, 3);
 }

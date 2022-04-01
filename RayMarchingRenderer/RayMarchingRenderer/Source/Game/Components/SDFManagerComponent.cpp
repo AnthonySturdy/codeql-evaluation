@@ -45,11 +45,15 @@ std::string SDFManagerComponent::GenerateSignedDistanceFunction(int objectType) 
 
 std::string SDFManagerComponent::GenerateSceneDistanceFunctionContents(const std::vector<RayMarchObjectComponent*>& raymarchObjects) const
 {
+	const std::string boolOperators[3] = { "min", "max", "max" };
+
 	std::string objectsDistanceCheck;
 	for (int i = 0; i < raymarchObjects.size(); i++)
 	{
+		const RayMarchObjectComponent* obj = raymarchObjects[i];
+
 		std::string index = std::to_string(i);
-		objectsDistanceCheck += "\tdist = min(dist, sdf" + SDFFuncContents[raymarchObjects[i]->GetSDFType() % SDFFuncContents.size()].first;
+		objectsDistanceCheck += "\tdist = " + boolOperators[obj->GetBoolOperator()] + "(dist, " + (obj->GetBoolOperator() == 2 ? "-" : "") + "sdf" + SDFFuncContents[obj->GetSDFType() % SDFFuncContents.size()].first;
 		objectsDistanceCheck += +"(Rotate(Translate(p, ObjectsList[" + index + "].Position), ObjectsList[" + index + "].Rotation) / ObjectsList[" + index + "].Scale.x, ObjectsList[" + index + "].Parameters) * ObjectsList[" + index + "].Scale.x);\n";
 	}
 
