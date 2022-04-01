@@ -2,12 +2,8 @@ float sdfSphere(float3 p, float3 param){
 	return length(p) - param.x;
 }
 
-float sdfCylinder(float3 p, float3 param){
-	float2 d = abs(float2(length(p.xz), p.y)) - float2(param.x, param.y); return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
-}
-
-float sdfBox(float3 p, float3 param){
-	float3 q = abs(p) - param.xyz; return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
+float sdfTorus(float3 p, float3 param){
+	float2 q = float2(length(p.xz) - param.x, p.y); return length(q) - param.y;
 }
 
 // Transformation functions
@@ -39,10 +35,12 @@ float GetDistanceToScene(float3 p)
     float dist = renderSettings.maxDist;
 
 	dist = min(dist, sdfSphere(Rotate(Translate(p, ObjectsList[0].Position), ObjectsList[0].Rotation) / ObjectsList[0].Scale.x, ObjectsList[0].Parameters) * ObjectsList[0].Scale.x);
-	dist = max(dist, -sdfCylinder(Rotate(Translate(p, ObjectsList[1].Position), ObjectsList[1].Rotation) / ObjectsList[1].Scale.x, ObjectsList[1].Parameters) * ObjectsList[1].Scale.x);
-	dist = max(dist, -sdfCylinder(Rotate(Translate(p, ObjectsList[2].Position), ObjectsList[2].Rotation) / ObjectsList[2].Scale.x, ObjectsList[2].Parameters) * ObjectsList[2].Scale.x);
-	dist = max(dist, -sdfCylinder(Rotate(Translate(p, ObjectsList[3].Position), ObjectsList[3].Rotation) / ObjectsList[3].Scale.x, ObjectsList[3].Parameters) * ObjectsList[3].Scale.x);
-	dist = min(dist, sdfBox(Rotate(Translate(p, ObjectsList[4].Position), ObjectsList[4].Rotation) / ObjectsList[4].Scale.x, ObjectsList[4].Parameters) * ObjectsList[4].Scale.x);
+	dist = min(dist, sdfSphere(Rotate(Translate(p, ObjectsList[1].Position), ObjectsList[1].Rotation) / ObjectsList[1].Scale.x, ObjectsList[1].Parameters) * ObjectsList[1].Scale.x);
+	dist = min(dist, sdfTorus(Rotate(Translate(p, ObjectsList[2].Position), ObjectsList[2].Rotation) / ObjectsList[2].Scale.x, ObjectsList[2].Parameters) * ObjectsList[2].Scale.x);
+	dist = min(dist, sdfSphere(Rotate(Translate(p, ObjectsList[3].Position), ObjectsList[3].Rotation) / ObjectsList[3].Scale.x, ObjectsList[3].Parameters) * ObjectsList[3].Scale.x);
+	dist = min(dist, sdfSphere(Rotate(Translate(p, ObjectsList[4].Position), ObjectsList[4].Rotation) / ObjectsList[4].Scale.x, ObjectsList[4].Parameters) * ObjectsList[4].Scale.x);
+	dist = min(dist, sdfSphere(Rotate(Translate(p, ObjectsList[5].Position), ObjectsList[5].Rotation) / ObjectsList[5].Scale.x, ObjectsList[5].Parameters) * ObjectsList[5].Scale.x);
+	dist = min(dist, sdfSphere(Rotate(Translate(p, ObjectsList[6].Position), ObjectsList[6].Rotation) / ObjectsList[6].Scale.x, ObjectsList[6].Parameters) * ObjectsList[6].Scale.x);
 
 	return dist;
 }
