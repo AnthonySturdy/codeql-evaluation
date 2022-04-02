@@ -38,6 +38,11 @@ SceneDistanceInfo GetDistanceToScene(float3 p)
 	prevDist = dist;
 	++curIndex;
 
+	dist = min(dist, sdfSphere(Rotate(Translate(p, ObjectsList[1].Position), ObjectsList[1].Rotation) / ObjectsList[1].Scale.x, ObjectsList[1].Parameters) * ObjectsList[1].Scale.x);
+	index = lerp(index, curIndex, prevDist != dist);
+	prevDist = dist;
+	++curIndex;
+
 
     SceneDistanceInfo info;
     info.distance = dist;

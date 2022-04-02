@@ -40,6 +40,7 @@ cbuffer RayMarchScene : register(b2)
 		unsigned int SDFType;
 		unsigned int BoolOperator;
 
+        // Material
         float3 Colour;
         float Metalicness;
         float Roughness;
@@ -95,7 +96,7 @@ float3 CalculateNormal(float3 p)
     return normalize(normal);
 }
 
-Ray RayMarch(float3 ro, float3 rd)
+Ray RayMarch(float3 ro, float3 rd, RS rs)
 {
     // Initialise ray
     Ray ray;
@@ -108,12 +109,12 @@ Ray RayMarch(float3 ro, float3 rd)
     
     // Step along ray direction
     [loop]
-    for (; ray.stepCount < renderSettings.maxSteps; ++ray.stepCount)
+    for (; ray.stepCount < rs.maxSteps; ++ray.stepCount)
     {
         SceneDistanceInfo distInfo = GetDistanceToScene(ro + rd * ray.depth);
 
         // If distance less than threshold, ray has intersected
-        if (distInfo.distance < renderSettings.intersectionThreshold)
+        if (distInfo.distance < rs.intersectionThreshold)
         {
             ray.hit = true;
             ray.hitPosition = ro + rd * ray.depth;
@@ -125,7 +126,7 @@ Ray RayMarch(float3 ro, float3 rd)
         
         // Increment total depth by distance to scene
         ray.depth += distInfo.distance;
-        if (ray.depth > renderSettings.maxDist)
+        if (ray.depth > rs.maxDist)
             break;
     }
     
@@ -205,11 +206,32 @@ float4 main(PS_INPUT Input) : SV_TARGET
     const float3 rd = normalize(mul(transpose(camera.view), float4(uv, tan(-camera.fov), 0.0f)).xyz); // Ray direction
 
     float4 finalColour = float4(rd * .5 + .5, 1.0f); // Sky color
-    Ray ray = RayMarch(ro, rd);
+    Ray ray = RayMarch(ro, rd, renderSettings);
     if (ray.hit)
     {
         const float3 lightCol = CalculateLightColour(ray);
-        finalColour = float4((ObjectsList[ray.hitIndex].Colour * (0.2f + lightCol)), 1.0f);
+
+        // Reflection
+        RS rs = renderSettings; // render settings with lower fidelity
+        rs.intersectionThreshold * 5.0f;
+        rs.maxSteps /= 2;
+
+        Ray refRay; // reflection ray
+        refRay.hit = false;
+        if (ObjectsList[ray.hitIndex].Metalicness)
+			refRay = RayMarch(ray.hitPosition + (ray.hitNormal * rs.intersectionThreshold * 2.0f), reflect(rd, ray.hitNormal), rs);
+
+        // Choose colour based on if reflection ray hit
+        const float3 refCol = lerp(reflect(rd, ray.hitNormal) * .5 + .5, 
+									ObjectsList[refRay.hitIndex].Colour, 
+									refRay.hit);
+
+        // Mix between surface and reflection colour based on metalicness
+        const float3 surfaceCol = lerp(ObjectsList[ray.hitIndex].Colour, 
+										refCol, 
+										ObjectsList[ray.hitIndex].Metalicness);
+
+        finalColour = float4((surfaceCol * (0.2f + lightCol)), 1.0f);
     }
     return finalColour;
 }
