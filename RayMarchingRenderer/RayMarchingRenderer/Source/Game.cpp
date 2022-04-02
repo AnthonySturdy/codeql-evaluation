@@ -2,6 +2,7 @@
 #include "Game.h"
 
 #include "Game/Components/CameraComponent.h"
+#include "Game/Components/MaterialComponent.h"
 #include "Game/Components/MeshRendererComponent.h"
 #include "Game/Components/TransformComponent.h"
 #include "Game/Components/RayMarchingManagerComponent.h"
@@ -73,18 +74,13 @@ void Game::Initialize(HWND window, int width, int height)
 	GameObjects.push_back(new GameObject("Sphere"));
 	const auto rmObj = GameObjects[2];
 	rmObj->AddComponent(new RayMarchObjectComponent());
+	rmObj->AddComponent(new MaterialComponent());
 
 	GameObjects.push_back(new GameObject("Light"));
 	const auto rmLight = GameObjects[3];
 	rmLight->AddComponent(new RayMarchLightComponent());
 	TransformComponent* lightTransf = rmLight->GetComponent<TransformComponent>();
 	lightTransf->SetPosition(SimpleMath::Vector3(1.0f, 2.0f, 4.0f));
-
-	//GameObjects.push_back(new GameObject("Light"));
-	//const auto rmLight1 = GameObjects[4];
-	//rmLight1->AddComponent(new RayMarchLightComponent());
-	//TransformComponent* lightTransf1 = rmLight1->GetComponent<TransformComponent>();
-	//lightTransf1->SetPosition(SimpleMath::Vector3(-2.0f, -1.0f, 7.0f));
 
 	// Vsync
 	m_timer.SetFixedTimeStep(true);

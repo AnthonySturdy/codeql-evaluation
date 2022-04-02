@@ -40,6 +40,7 @@
     <ClInclude Include="Source\Game\Components\RayMarchObjectComponent.h" />
     <ClInclude Include="Source\Game\Components\SDFManagerComponent.h" />
     <ClInclude Include="Source\Game\Components\RayMarchLightComponent.h" />
+    <ClInclude Include="Source\Game\Components\MaterialComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\pch.cpp" />
@@ -69,6 +70,7 @@
     <ClCompile Include="Source\Game\Components\RayMarchObjectComponent.cpp" />
     <ClCompile Include="Source\Game\Components\SDFManagerComponent.cpp" />
     <ClCompile Include="Source\Game\Components\RayMarchLightComponent.cpp" />
+    <ClCompile Include="Source\Game\Components\MaterialComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

@@ -31,7 +31,11 @@ class RayMarchingManagerComponent : public Component
 			unsigned int SDFType{ 0u };
 			unsigned int BoolOperator{ 0u };
 
-			float PADDING[3]{};
+			DirectX::SimpleMath::Vector3 Colour{ DirectX::SimpleMath::Vector3::One };
+			float Metalicness{ 0.0f };
+			float Roughness{ 0.0f };
+
+			float PADDING[2]{};
 		} ObjectsList[RAYMARCH_MAX_OBJECTS];
 	};
 

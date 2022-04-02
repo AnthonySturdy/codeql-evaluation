@@ -40,7 +40,11 @@ cbuffer RayMarchScene : register(b2)
 		unsigned int SDFType;
 		unsigned int BoolOperator;
 
-		float3 PADDING;
+        float3 Colour;
+        float Metalicness;
+        float Roughness;
+
+		float2 PADDING;
 	} ObjectsList[RAYMARCH_MAX_OBJECTS];
 }
 
@@ -60,6 +64,12 @@ cbuffer RayMarchLights : register(b3)
 	} LightsList[RAYMARCH_MAX_LIGHTS];
 };
 
+struct SceneDistanceInfo
+{
+    float distance;
+    int index;
+};
+
 #include "GeneratedSceneDistance.hlsli"
 
 // Ray Marching
@@ -68,17 +78,19 @@ struct Ray
     bool hit;
     float3 hitPosition;
     float3 hitNormal;
+    int hitIndex;
     float depth;
     uint stepCount;
 };
 
 float3 CalculateNormal(float3 p)
 {
-    const float2 offset = float2(0.001f, 0.0f);
+    const float2 offset = float2(0.005f, 0.0f);
 
-    float3 normal = float3(GetDistanceToScene(p + offset.xyy) - GetDistanceToScene(p - offset.xyy),
-                           GetDistanceToScene(p + offset.yxy) - GetDistanceToScene(p - offset.yxy),
-                           GetDistanceToScene(p + offset.yyx) - GetDistanceToScene(p - offset.yyx));
+    int i = 0;
+    float3 normal = float3(GetDistanceToScene(p + offset.xyy).distance - GetDistanceToScene(p - offset.xyy).distance,
+                           GetDistanceToScene(p + offset.yxy).distance - GetDistanceToScene(p - offset.yxy).distance,
+                           GetDistanceToScene(p + offset.yyx).distance - GetDistanceToScene(p - offset.yyx).distance);
 
     return normalize(normal);
 }
@@ -90,6 +102,7 @@ Ray RayMarch(float3 ro, float3 rd)
     ray.hit = false;
     ray.hitPosition = float3(0.0f, 0.0f, 0.0f);
     ray.hitNormal = float3(0.0f, 0.0f, 0.0f);
+    ray.hitIndex = -1;
     ray.depth = 0.0f;
     ray.stepCount = 0;
     
@@ -97,20 +110,21 @@ Ray RayMarch(float3 ro, float3 rd)
     [loop]
     for (; ray.stepCount < renderSettings.maxSteps; ++ray.stepCount)
     {
-        float curDist = GetDistanceToScene(ro + rd * ray.depth);
+        SceneDistanceInfo distInfo = GetDistanceToScene(ro + rd * ray.depth);
 
         // If distance less than threshold, ray has intersected
-        if (curDist < renderSettings.intersectionThreshold)
+        if (distInfo.distance < renderSettings.intersectionThreshold)
         {
             ray.hit = true;
             ray.hitPosition = ro + rd * ray.depth;
             ray.hitNormal = CalculateNormal(ray.hitPosition);
+            ray.hitIndex = distInfo.index;
                     
             return ray;
         }
         
         // Increment total depth by distance to scene
-        ray.depth += curDist;
+        ray.depth += distInfo.distance;
         if (ray.depth > renderSettings.maxDist)
             break;
     }
@@ -129,21 +143,21 @@ float ShadowMarch(float3 ro, int lightIdx)
     for (int i = 0; i < renderSettings.maxSteps; ++i)
     {
         const float3 p = ro + rd * depth;
-        const float curDist = GetDistanceToScene(p);
+        const SceneDistanceInfo distInfo = GetDistanceToScene(p);
 
         // If ray is able to become close to light, there is no shadow.
         if (dot(normalize(LightsList[lightIdx].Position.xyz - p), rd) < 0)
             break;
 
         // If distance less than threshold, ray has intersected
-        if (curDist < renderSettings.intersectionThreshold)
+        if (distInfo.distance < renderSettings.intersectionThreshold)
             return 0.0f;
 
         // Soft shadowing
-        result = min(result, LightsList[lightIdx].ShadowSharpness * curDist / depth);
+        result = min(result, LightsList[lightIdx].ShadowSharpness * distInfo.distance / depth);
         
         // Increment total depth by distance to light
-        depth += curDist;
+        depth += distInfo.distance;
         if (depth > renderSettings.maxDist)
             break;
     }
@@ -165,7 +179,7 @@ float3 CalculateLightColour(Ray ray)
         float shadowAmount = 1.0f;
         if (diffuse > 0.0f)
         {
-            specular = saturate(1.0f * pow(dot(rd, reflect(ray.hitNormal, normalize(LightsList[i].Position.xyz - ray.hitPosition))), 32.0f));
+            specular = saturate(1.0f * pow(dot(rd, reflect(ray.hitNormal, normalize(LightsList[i].Position.xyz - ray.hitPosition))), ObjectsList[ray.hitIndex].Roughness * 256.0f + 2.0f));
             shadowAmount = ShadowMarch(ray.hitPosition + ray.hitNormal * renderSettings.intersectionThreshold * 2.0f, i);
         }
 
@@ -195,8 +209,7 @@ float4 main(PS_INPUT Input) : SV_TARGET
     if (ray.hit)
     {
         const float3 lightCol = CalculateLightColour(ray);
-        //return float4(lightCol, 1.0f);
-        finalColour = float4(((ray.hitNormal * .5 + .5) * (0.2f + lightCol)), 1.0f);
+        finalColour = float4((ObjectsList[ray.hitIndex].Colour * (0.2f + lightCol)), 1.0f);
     }
     return finalColour;
 }

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "RayMarchingManagerComponent.h"
 
+#include "MaterialComponent.h"
 #include "MeshRendererComponent.h"
 #include "RayMarchLightComponent.h"
 #include "SDFManagerComponent.h"
@@ -45,18 +46,22 @@ void RayMarchingManagerComponent::Update(float deltaTime)
 
 	const auto sdfManager = Parent->GetComponent<SDFManagerComponent>();
 
+	// Construct string of signed distance functions being used and total boolean operator values
 	std::string sdfs;
-	for (const auto& go : rmObjects)
+	int boolOpsTotal = 0;
+	for (const auto& obj : rmObjects)
 	{
-		std::string goSdf = sdfManager->GenerateSignedDistanceFunction(go->GetSDFType());
-		if (!sdfs.contains(goSdf))
-			sdfs += goSdf;
+		const std::string objSdf = sdfManager->GenerateSignedDistanceFunction(obj->GetSDFType());
+		if (!sdfs.contains(objSdf))
+			sdfs += objSdf;
+
+		boolOpsTotal += obj->GetBoolOperator();
 	};
 
 	// Use hash to prevent unnecessary shader changes
 	static constexpr std::hash<std::string> hash;
 	static size_t prevSdfHash = hash("");
-	const size_t curSdfHash = hash(sdfs + std::to_string(rmObjects.size()));
+	const size_t curSdfHash = hash(sdfs + std::to_string(rmObjects.size()) + std::to_string(boolOpsTotal));
 	if (curSdfHash != prevSdfHash)
 	{
 		prevSdfHash = curSdfHash;
@@ -98,6 +103,11 @@ void RayMarchingManagerComponent::Render()
 			RayMarchSceneData.ObjectsList[i].Parameters = rmObjects[i]->GetParameters();
 			RayMarchSceneData.ObjectsList[i].SDFType = rmObjects[i]->GetSDFType();
 			RayMarchSceneData.ObjectsList[i].BoolOperator = rmObjects[i]->GetBoolOperator();
+
+			const auto material = rmObjects[i]->Parent->GetComponent<MaterialComponent>();
+			RayMarchSceneData.ObjectsList[i].Colour = material->GetColour();
+			RayMarchSceneData.ObjectsList[i].Metalicness = material->GetMetalicness();
+			RayMarchSceneData.ObjectsList[i].Roughness = material->GetRoughness();
 		}
 		else
 		{

@@ -22,7 +22,17 @@ float3 Translate(float3 p, float3 t)
 }
 
 // Distance function called from pixel shader
-float GetDistanceToScene(float3 p)
+SceneDistanceInfo GetDistanceToScene(float3 p)
 {
-    $DIST_FUNC_CONTENTS
+    float dist = renderSettings.maxDist;
+    float prevDist = renderSettings.maxDist;
+    int index = 0;
+    int curIndex = 0;
+
+$DIST_FUNC_CONTENTS
+    SceneDistanceInfo info;
+    info.distance = dist;
+    info.index = index;
+
+    return info;
 }

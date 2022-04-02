@@ -41,8 +41,6 @@ void GameObject::Render()
 
 void GameObject::RenderGUI()
 {
-	ImGui::PushID(this);
-
 	if (ImGui::CollapsingHeader((Name + "###").c_str()))
 	{
 		ImGui::InputText("Name", &Name);
@@ -64,6 +62,4 @@ void GameObject::RenderGUI()
 			}
 		}
 	}
-
-	ImGui::PopID();
 }

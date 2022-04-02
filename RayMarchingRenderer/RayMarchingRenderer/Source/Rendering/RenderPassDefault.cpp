@@ -2,6 +2,8 @@
 #include "Rendering/RenderPassDefault.h"
 
 #include "Game/GameObject.h"
+#include "Game/Components/MaterialComponent.h"
+#include "Game/Components/RayMarchLightComponent.h"
 #include "Game/Components/RayMarchObjectComponent.h"
 
 RenderPassDefault::RenderPassDefault(std::vector<GameObject*>& gameObjects)
@@ -97,13 +99,39 @@ void RenderPassDefault::RenderGUI()
 {
 	ImGui::Begin("Scene View");
 
-	for (const auto go : GameObjects)
+	for (int i = 0; i < GameObjects.size(); ++i)
+	{
+		const auto go = GameObjects[i];
+
+		ImGui::PushID(go);
+
+		// Remove object
+		if (ImGui::Button("X"))
+		{
+			GameObjects.erase(GameObjects.begin() + i);
+			ImGui::PopID();
+			break;
+		}
+
+		ImGui::SameLine();
 		go->RenderGUI();
+
+		ImGui::PopID();
+	}
 
 	if (ImGui::Button("Add Ray Marched Object"))
 	{
 		const auto go = new GameObject("New Ray Marched Object");
 		go->AddComponent(new RayMarchObjectComponent());
+		go->AddComponent(new MaterialComponent());
+
+		GameObjects.push_back(go);
+	}
+
+	if (ImGui::Button("Add Ray Marched Light"))
+	{
+		const auto go = new GameObject("New Ray Marched Light");
+		go->AddComponent(new RayMarchLightComponent());
 
 		GameObjects.push_back(go);
 	}

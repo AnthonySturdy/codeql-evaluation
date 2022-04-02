@@ -53,11 +53,17 @@ std::string SDFManagerComponent::GenerateSceneDistanceFunctionContents(const std
 		const RayMarchObjectComponent* obj = raymarchObjects[i];
 
 		std::string index = std::to_string(i);
+		// Distance calculation
 		objectsDistanceCheck += "\tdist = " + boolOperators[obj->GetBoolOperator()] + "(dist, " + (obj->GetBoolOperator() == 2 ? "-" : "") + "sdf" + SDFFuncContents[obj->GetSDFType() % SDFFuncContents.size()].first;
 		objectsDistanceCheck += +"(Rotate(Translate(p, ObjectsList[" + index + "].Position), ObjectsList[" + index + "].Rotation) / ObjectsList[" + index + "].Scale.x, ObjectsList[" + index + "].Parameters) * ObjectsList[" + index + "].Scale.x);\n";
+
+		// Index calculation
+		objectsDistanceCheck += "\tindex = lerp(index, curIndex, prevDist != dist);\n";
+		objectsDistanceCheck += "\tprevDist = dist;\n";
+		objectsDistanceCheck += "\t++curIndex;\n\n";
 	}
 
-	return "float dist = renderSettings.maxDist;\n\n" + objectsDistanceCheck + "\n\treturn dist;";
+	return objectsDistanceCheck;
 }
 
 void SDFManagerComponent::WriteStringToHeaderShader(const std::string& content, std::ios_base::openmode writeMode) const

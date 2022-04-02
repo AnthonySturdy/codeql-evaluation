@@ -46,11 +46,6 @@ void MeshRendererComponent::Render()
 	context->DrawIndexed(MeshData->GetNumIndices(), 0, 0);
 }
 
-void MeshRendererComponent::RenderGUI()
-{
-	ImGui::Text("TODO: Implement model loading / mesh generation options");
-}
-
 void MeshRendererComponent::CreateConstantBuffer()
 {
 	const auto device = DX::DeviceResources::Instance()->GetD3DDevice();
