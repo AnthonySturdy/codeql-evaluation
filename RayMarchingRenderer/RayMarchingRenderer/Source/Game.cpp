@@ -10,6 +10,7 @@
 #include "Game/Components/SDFManagerComponent.h"
 #include "Game/Components/RayMarchLightComponent.h"
 #include "Rendering/RenderPassDefault.h"
+#include "Rendering/RenderPassReflections.h"
 
 extern void ExitGame() noexcept;
 
@@ -55,6 +56,7 @@ void Game::Initialize(HWND window, int width, int height)
 
 	// Create and Initialise render pipeline
 	RenderPipeline.push_back(std::make_unique<RenderPassDefault>(GameObjects));
+	RenderPipeline.push_back(std::make_unique<RenderPassReflections>(reinterpret_cast<RenderPassDefault*>(RenderPipeline[0].get())));
 	for (const auto& rp : RenderPipeline)
 		rp->Initialise();
 
@@ -145,7 +147,7 @@ void Game::Render()
 		for (const auto& rp : RenderPipeline)
 			rp->Initialise();
 	}
-	ImGui::Image(reinterpret_cast<RenderPassDefault*>(RenderPipeline[0].get())->GetSRV(),
+	ImGui::Image(reinterpret_cast<RenderPassReflections*>(RenderPipeline[1].get())->GetSRV(),
 	             ImGui::GetContentRegionAvail());
 	ImGui::End();
 	ImGui::PopStyleVar();

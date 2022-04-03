@@ -14,7 +14,8 @@ void RenderPassDefault::Initialise()
 	const auto device = DX::DeviceResources::Instance()->GetD3DDevice();
 	const auto outputSize = DX::DeviceResources::Instance()->GetViewportSize();
 
-	// Create render texture
+	// Create render textures
+	RenderTargetViews.clear();
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> rtvTex;
 	D3D11_TEXTURE2D_DESC texDesc = {};
 	texDesc.Width = outputSize.right;
@@ -27,8 +28,24 @@ void RenderPassDefault::Initialise()
 	texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	texDesc.CPUAccessFlags = 0;
 	texDesc.MiscFlags = 0;
-	DX::ThrowIfFailed(device->CreateTexture2D(&texDesc, nullptr, rtvTex.GetAddressOf()));
-	DX::ThrowIfFailed(device->CreateRenderTargetView(rtvTex.Get(), nullptr, RenderTargetView.ReleaseAndGetAddressOf()));
+	// Main RTV
+	DX::ThrowIfFailed(device->CreateTexture2D(&texDesc, nullptr, rtvTex.ReleaseAndGetAddressOf()));
+	RenderTargetViews.push_back(nullptr);
+	DX::ThrowIfFailed(device->CreateRenderTargetView(rtvTex.Get(), nullptr, RenderTargetViews[RenderTargetViews.size() - 1].ReleaseAndGetAddressOf()));
+	// Normal/Depth RTV
+	DX::ThrowIfFailed(device->CreateTexture2D(&texDesc, nullptr, rtvTex.ReleaseAndGetAddressOf()));
+	RenderTargetViews.push_back(nullptr);
+	DX::ThrowIfFailed(device->CreateRenderTargetView(rtvTex.Get(), nullptr, RenderTargetViews[RenderTargetViews.size() - 1].ReleaseAndGetAddressOf()));
+	// Reflection Colour and (unnormalised) Depth RTV
+	DX::ThrowIfFailed(device->CreateTexture2D(&texDesc, nullptr, rtvTex.ReleaseAndGetAddressOf()));
+	RenderTargetViews.push_back(nullptr);
+	DX::ThrowIfFailed(device->CreateRenderTargetView(rtvTex.Get(), nullptr, RenderTargetViews[RenderTargetViews.size() - 1].ReleaseAndGetAddressOf()));
+	// Metalicness and Roughness RTV
+	texDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
+	DX::ThrowIfFailed(device->CreateTexture2D(&texDesc, nullptr, rtvTex.ReleaseAndGetAddressOf()));
+	RenderTargetViews.push_back(nullptr);
+	DX::ThrowIfFailed(device->CreateRenderTargetView(rtvTex.Get(), nullptr, RenderTargetViews[RenderTargetViews.size() - 1].ReleaseAndGetAddressOf()));
+
 
 	// Create depth stencil
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilTex;
@@ -60,10 +77,15 @@ void RenderPassDefault::Initialise()
 	renderStateDesc.DepthClipEnable = true;
 	DX::ThrowIfFailed(device->CreateRasterizerState(&renderStateDesc, RenderState.ReleaseAndGetAddressOf()));
 
-	// Create SRV into RTV
-	Microsoft::WRL::ComPtr<ID3D11Resource> geometryPassResource;
-	RenderTargetView->GetResource(geometryPassResource.ReleaseAndGetAddressOf());
-	DX::ThrowIfFailed(device->CreateShaderResourceView(geometryPassResource.Get(), nullptr, RenderTargetSRV.ReleaseAndGetAddressOf()));
+	// Create SRV from RTV
+	RenderTargetSRV.clear();
+	for (int i = 0; i < RenderTargetViews.size(); ++i)
+	{
+		RenderTargetSRV.push_back(nullptr);
+		Microsoft::WRL::ComPtr<ID3D11Resource> geometryPassResource;
+		RenderTargetViews[i]->GetResource(geometryPassResource.ReleaseAndGetAddressOf());
+		DX::ThrowIfFailed(device->CreateShaderResourceView(geometryPassResource.Get(), nullptr, RenderTargetSRV[i].ReleaseAndGetAddressOf()));
+	}
 }
 
 void RenderPassDefault::Render()
@@ -72,11 +94,11 @@ void RenderPassDefault::Render()
 	const auto outputSize = DX::DeviceResources::Instance()->GetViewportSize();
 
 	static constexpr DirectX::SimpleMath::Color clearColour(1.0f, 0.0f, 0.0f, 1.0f);
-	context->ClearRenderTargetView(RenderTargetView.Get(), &clearColour.x);
+	context->ClearRenderTargetView(RenderTargetViews[0].Get(), &clearColour.x);
 	context->ClearDepthStencilView(DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	// Bind resources
-	context->OMSetRenderTargets(1, RenderTargetView.GetAddressOf(), DepthStencilView.Get());
+	context->OMSetRenderTargets(RenderTargetViews.size(), RenderTargetViews.data()->GetAddressOf(), DepthStencilView.Get());
 
 	const CD3D11_VIEWPORT viewport(0.0f, 0.0f,
 	                               outputSize.right, outputSize.bottom,
@@ -90,9 +112,9 @@ void RenderPassDefault::Render()
 		go->Render();
 
 	// Unbind render targets
-	ID3D11RenderTargetView* nullRtv = nullptr;
+	const std::vector<ID3D11RenderTargetView*> nullRtvs(RenderTargetViews.size(), nullptr);
 	ID3D11DepthStencilView* nullDsv = nullptr;
-	context->OMSetRenderTargets(1, &nullRtv, nullDsv);
+	context->OMSetRenderTargets(RenderTargetViews.size(), nullRtvs.data(), nullDsv);
 }
 
 void RenderPassDefault::RenderGUI()

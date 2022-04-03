@@ -20,8 +20,6 @@ public:
 	void CreatePixelShader();
 
 private:
-	HRESULT CompileShaderFromFile(const WCHAR* fileName, LPCSTR entryPoint, LPCSTR shaderModel, ID3DBlob** blobOut);
-
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> VertexShader;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> PixelShader;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> InputLayout;

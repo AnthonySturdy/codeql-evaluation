@@ -17,14 +17,23 @@ public:
 	void Render() override;
 	void RenderGUI() override;
 
-	[[nodiscard]] ID3D11ShaderResourceView* GetSRV() const { return RenderTargetSRV.Get(); }
+	[[nodiscard]] ID3D11ShaderResourceView* GetSRV() const { return RenderTargetSRV[0].Get(); }
+	[[nodiscard]] ID3D11ShaderResourceView* GetSRV(const int i) const { return RenderTargetSRV[i % RenderTargetSRV.size()].Get(); }
+
+	[[nodiscard]] std::vector<ID3D11ShaderResourceView*> GetSRVs() const
+	{
+		std::vector<ID3D11ShaderResourceView*> res;
+		for (const auto& srv : RenderTargetSRV)
+			res.push_back(srv.Get());
+		return res;
+	}
 
 private:
 	std::vector<GameObject*>& GameObjects;
 
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> RenderTargetView;
-	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> DepthStencilView;
-	Microsoft::WRL::ComPtr<ID3D11RasterizerState> RenderState;
+	std::vector<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>> RenderTargetViews{};
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> DepthStencilView{};
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> RenderState{};
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> RenderTargetSRV;
+	std::vector<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> RenderTargetSRV{};
 };

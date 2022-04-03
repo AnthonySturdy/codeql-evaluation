@@ -4,6 +4,14 @@ struct PS_INPUT
     float2 TexCoord : TEXCOORD0;
 };
 
+struct PS_OUTPUT
+{
+    float4 Colour;
+    float4 NormDepth;
+    float4 ReflectionColDepth;
+    float2 MetalicnessRoughness;
+};
+
 // Constant Buffers
 cbuffer RenderSettings : register(b0)
 {
@@ -166,6 +174,16 @@ float ShadowMarch(float3 ro, int lightIdx)
     return result;
 }
 
+float CalculateDiffuse(float3 n, float3 ld)
+{
+    return saturate(dot(n, ld));
+}
+
+float CalculateSpecular(float3 rd, float3 ref, float li, float s)
+{
+    return saturate(li * pow(dot(rd, ref), s));
+}
+
 float3 CalculateLightColour(Ray ray)
 {
     float3 lightCol = float3(0.0f, 0.0f, 0.0f);
@@ -174,13 +192,16 @@ float3 CalculateLightColour(Ray ray)
     [unroll(RAYMARCH_MAX_LIGHTS)]
     for (int i = 0; i < RAYMARCH_MAX_LIGHTS; ++i)
     {
-        const float diffuse = saturate(dot(ray.hitNormal, normalize(LightsList[i].Position.xyz - ray.hitPosition)));
+        const float diffuse = CalculateDiffuse(ray.hitNormal, normalize(LightsList[i].Position.xyz - ray.hitPosition));
 
         float specular = 0.0f;
         float shadowAmount = 1.0f;
         if (diffuse > 0.0f)
         {
-            specular = saturate(1.0f * pow(dot(rd, reflect(ray.hitNormal, normalize(LightsList[i].Position.xyz - ray.hitPosition))), ObjectsList[ray.hitIndex].Roughness * 256.0f + 2.0f));
+            specular = CalculateSpecular(rd, 
+										reflect(ray.hitNormal, normalize(LightsList[i].Position.xyz - ray.hitPosition)), 
+										1.0f, 
+										(1.0f - ObjectsList[ray.hitIndex].Roughness) * 256.0f + 2.0f);
             shadowAmount = ShadowMarch(ray.hitPosition + ray.hitNormal * renderSettings.intersectionThreshold * 2.0f, i);
         }
 
@@ -193,9 +214,10 @@ float3 CalculateLightColour(Ray ray)
     return lightCol;
 }
 
-
-float4 main(PS_INPUT Input) : SV_TARGET
+PS_OUTPUT main(PS_INPUT Input) : SV_TARGET
 {
+    PS_OUTPUT output;
+
     const float aspectRatio = renderSettings.resolution[0] / (float) renderSettings.resolution[1];
     float2 uv = Input.TexCoord;
     uv.y = 1.0f - uv.y; // Flip UV on Y axis
@@ -218,20 +240,25 @@ float4 main(PS_INPUT Input) : SV_TARGET
 
         Ray refRay; // reflection ray
         refRay.hit = false;
+        float3 refLight = float3(0.8f, 0.8f, 0.8f);
         if (ObjectsList[ray.hitIndex].Metalicness)
-			refRay = RayMarch(ray.hitPosition + (ray.hitNormal * rs.intersectionThreshold * 2.0f), reflect(rd, ray.hitNormal), rs);
+        {
+            refRay = RayMarch(ray.hitPosition + (ray.hitNormal * rs.intersectionThreshold * 2.0f), reflect(rd, ray.hitNormal), rs);
+            refLight = CalculateLightColour(refRay);
+        }
 
         // Choose colour based on if reflection ray hit
         const float3 refCol = lerp(reflect(rd, ray.hitNormal) * .5 + .5, 
-									ObjectsList[refRay.hitIndex].Colour, 
-									refRay.hit);
+							ObjectsList[refRay.hitIndex].Colour,
+							refRay.hit);
+        
+        output.ReflectionColDepth = float4(refCol * (0.2f + refLight), refRay.depth);
 
-        // Mix between surface and reflection colour based on metalicness
-        const float3 surfaceCol = lerp(ObjectsList[ray.hitIndex].Colour, 
-										refCol, 
-										ObjectsList[ray.hitIndex].Metalicness);
-
-        finalColour = float4((surfaceCol * (0.2f + lightCol)), 1.0f);
+        finalColour = float4((ObjectsList[ray.hitIndex].Colour * (0.2f + lightCol)), 1.0f);
     }
-    return finalColour;
+
+    output.Colour = finalColour;
+    output.NormDepth = float4(ray.hitNormal * .5 + .5, ray.depth / renderSettings.maxDist);
+    output.MetalicnessRoughness = float2(ObjectsList[ray.hitIndex].Metalicness, ObjectsList[ray.hitIndex].Roughness);
+    return output;
 }
