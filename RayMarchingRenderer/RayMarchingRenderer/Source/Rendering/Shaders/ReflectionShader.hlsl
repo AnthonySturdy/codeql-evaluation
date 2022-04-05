@@ -41,7 +41,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
     }
 
     Output[DTid.xy] = float4(lerp(InColour[DTid.xy].rgb, 
-								  lerp(InColour[DTid.xy].rgb, blurredReflection, 0.4f), 
+								  lerp(InColour[DTid.xy].rgb, blurredReflection, 0.6f), 
 								  InMetalicnessRoughness[DTid.xy].r), 
 							 1.0f);
 }
