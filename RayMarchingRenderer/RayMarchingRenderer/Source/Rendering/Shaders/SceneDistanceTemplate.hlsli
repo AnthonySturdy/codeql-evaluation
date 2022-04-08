@@ -1,5 +1,5 @@
 // Transformation functions
-float2x2 Rotate2D(float r)
+float2x2 Rotate2D(const float r)
 {
     const float s = sin(r);
 	const float c = cos(r);
