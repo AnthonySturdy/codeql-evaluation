@@ -13,8 +13,9 @@ class RayMarchingManagerComponent : public Component
 		unsigned int MaxSteps{ 300u };
 		float MaxDist{ 500.0f };
 		float IntersectionThreshold{ 0.01f };
+		float AmbientOcclusionStrength{ 3.0f };
 
-		float PADDING[3]{};
+		float PADDING[2]{};
 	};
 
 	struct RayMarchScene

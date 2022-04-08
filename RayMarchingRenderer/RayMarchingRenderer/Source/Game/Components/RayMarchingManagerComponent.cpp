@@ -147,4 +147,5 @@ void RayMarchingManagerComponent::RenderGUI()
 	ImGui::DragInt("Max Steps", reinterpret_cast<int*>(&RenderSettingsData.MaxSteps), 1.0f, 1, 1000);
 	ImGui::DragFloat("Max Dist", &RenderSettingsData.MaxDist, .5f, 1.0f, 10000.0f);
 	ImGui::DragFloat("Threshold", &RenderSettingsData.IntersectionThreshold, 0.0001f, 0.0001f, 0.3f);
+	ImGui::DragFloat("AO Strength", &RenderSettingsData.AmbientOcclusionStrength, 0.001f, 0.005f, 10.0f);
 }

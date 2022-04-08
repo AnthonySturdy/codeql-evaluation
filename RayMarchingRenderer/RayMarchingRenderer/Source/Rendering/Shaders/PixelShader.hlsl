@@ -21,8 +21,10 @@ cbuffer RenderSettings : register(b0)
         unsigned int maxSteps;
         float maxDist;
         float intersectionThreshold;
+		float AmbientOcclusionStrength;
 
-        float3 PADDING;
+
+        float2 PADDING;
     } renderSettings;
 }
 
@@ -254,7 +256,10 @@ PS_OUTPUT main(PS_INPUT Input) : SV_TARGET
         
         output.ReflectionColDepth = float4(refCol * (0.2f + refLight), refRay.depth);
 
-        finalColour = float4((ObjectsList[ray.hitIndex].Colour * (0.2f + lightCol)), 1.0f);
+        // Ambient Occlusion
+        const float ao = 1.0f - float(ray.stepCount) / (renderSettings.maxSteps / renderSettings.AmbientOcclusionStrength);
+
+        finalColour = float4((ObjectsList[ray.hitIndex].Colour * (0.2f + lightCol) * ao), 1.0f);
     }
 
     output.Colour = finalColour;
