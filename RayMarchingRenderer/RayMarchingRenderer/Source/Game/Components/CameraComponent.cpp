@@ -8,12 +8,16 @@ CameraComponent::CameraComponent()
 	: FOV(DirectX::XM_PIDIV2 * 1.25f)
 {
 	Initialise();
+
+	LoadSkyboxFromPath(L"Resources\\Skyboxes\\Sky.dds");
 }
 
 CameraComponent::CameraComponent(const float fov)
 	: FOV(fov)
 {
 	Initialise();
+
+	LoadSkyboxFromPath(L"Resources\\Skyboxes\\Sky.dds");
 }
 
 void CameraComponent::Initialise()
@@ -38,6 +42,21 @@ void CameraComponent::Initialise()
 	sampDesc.MinLOD = 0;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	DX::ThrowIfFailed(device->CreateSamplerState(&sampDesc, LinearSampler.ReleaseAndGetAddressOf()));
+}
+
+void CameraComponent::LoadSkyboxFromPath(const std::wstring& path)
+{
+	const auto device = DX::DeviceResources::Instance()->GetD3DDevice();
+	DX::ThrowIfFailed(DirectX::CreateDDSTextureFromFileEx(device,
+	                                                      path.c_str(),
+	                                                      0,
+	                                                      D3D11_USAGE_DEFAULT,
+	                                                      D3D11_BIND_SHADER_RESOURCE,
+	                                                      0,
+	                                                      D3D11_RESOURCE_MISC_TEXTURECUBE,
+	                                                      false,
+	                                                      nullptr,
+	                                                      SkyboxSRV.ReleaseAndGetAddressOf()));
 }
 
 void CameraComponent::Render()
@@ -77,17 +96,7 @@ void CameraComponent::RenderGUI()
 				path[i] = filePath[i];
 
 			// Create SRV
-			const auto device = DX::DeviceResources::Instance()->GetD3DDevice();
-			DX::ThrowIfFailed(DirectX::CreateDDSTextureFromFileEx(device,
-			                                                      std::wstring(filePath.begin(), filePath.end()).c_str(),
-			                                                      0,
-			                                                      D3D11_USAGE_DEFAULT,
-			                                                      D3D11_BIND_SHADER_RESOURCE,
-			                                                      0,
-			                                                      D3D11_RESOURCE_MISC_TEXTURECUBE,
-			                                                      false,
-			                                                      nullptr,
-			                                                      SkyboxSRV.ReleaseAndGetAddressOf()));
+			LoadSkyboxFromPath(std::wstring(filePath.begin(), filePath.end()));
 		}
 		ImGuiFileDialog::Instance()->Close();
 	}

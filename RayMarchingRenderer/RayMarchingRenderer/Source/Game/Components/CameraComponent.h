@@ -33,6 +33,7 @@ protected:
 
 private:
 	void Initialise();
+	void LoadSkyboxFromPath(const std::wstring& path);
 
 	float FOV{ 0.0f };
 
