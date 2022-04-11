@@ -59,15 +59,6 @@ void CameraComponent::RenderGUI()
 {
 	ImGui::SliderFloat("FOV", &FOV, 1.0f * 0.0174533, 160.0f * 0.0174533);
 
-	// Skybox selection
-	ImGui::Image(SkyboxSRV.Get(), ImVec2(20, 20)); // Heightmap preview and tooltip
-	if (ImGui::IsItemHovered() && SkyboxSRV.Get())
-	{
-		ImGui::BeginTooltip();
-		ImGui::Image(SkyboxSRV.Get(), ImVec2(200, 200));
-		ImGui::EndTooltip();
-	}
-	ImGui::SameLine();
 	static char* path = new char[512]{}; // Heightmap file selection
 	ImGui::InputTextWithHint("##", "Select .DDS Skybox Texture", path, 512, ImGuiInputTextFlags_ReadOnly);
 	ImGui::SameLine();
@@ -87,13 +78,16 @@ void CameraComponent::RenderGUI()
 
 			// Create SRV
 			const auto device = DX::DeviceResources::Instance()->GetD3DDevice();
-			//DX::ThrowIfFailed(DirectX::CreateDDSTextureFromFile(device,
-			//                                                    std::wstring(filePath.begin(), filePath.end()).c_str(),
-			//                                                    nullptr,
-			//                                                    SkyboxSRV.ReleaseAndGetAddressOf()));
-
-
-			DX::ThrowIfFailed(DirectX::CreateDDSTextureFromFileEx(device, std::wstring(filePath.begin(), filePath.end()).c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, nullptr, SkyboxSRV.ReleaseAndGetAddressOf()));
+			DX::ThrowIfFailed(DirectX::CreateDDSTextureFromFileEx(device,
+			                                                      std::wstring(filePath.begin(), filePath.end()).c_str(),
+			                                                      0,
+			                                                      D3D11_USAGE_DEFAULT,
+			                                                      D3D11_BIND_SHADER_RESOURCE,
+			                                                      0,
+			                                                      D3D11_RESOURCE_MISC_TEXTURECUBE,
+			                                                      false,
+			                                                      nullptr,
+			                                                      SkyboxSRV.ReleaseAndGetAddressOf()));
 		}
 		ImGuiFileDialog::Instance()->Close();
 	}
