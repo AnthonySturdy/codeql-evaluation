@@ -37,6 +37,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include "backends/imgui_impl_win32.h"
 #include "backends/imgui_impl_dx11.h"
+#include "ImGuiFileDialog-0.6.4/ImGuiFileDialog.h"
 
 #include <d3d11_1.h>
 #include <dxgi1_6.h>

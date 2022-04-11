@@ -1,3 +1,6 @@
+TextureCube SkyboxTex : register(t0);
+SamplerState Sampler : register(s0);
+
 struct PS_INPUT
 {
     float4 Pos : SV_POSITION;
@@ -216,6 +219,15 @@ float3 CalculateLightColour(Ray ray)
     return lightCol;
 }
 
+float4 CalculateSkyColour(float3 dir)
+{
+    float2 uv = float2(atan2(dir.x, dir.z) / (2 * 3.142f) + 0.5,
+					   dir.y * 0.5 + 0.5);
+
+
+    return SkyboxTex.Sample(Sampler, dir);
+}
+
 PS_OUTPUT main(PS_INPUT Input) : SV_TARGET
 {
     PS_OUTPUT output;
@@ -229,7 +241,9 @@ PS_OUTPUT main(PS_INPUT Input) : SV_TARGET
     const float3 ro = camera.position; // Ray origin
     const float3 rd = normalize(mul(transpose(camera.view), float4(uv, tan(-camera.fov), 0.0f)).xyz); // Ray direction
 
-    float4 finalColour = float4(rd * .5 + .5, 1.0f); // Sky color
+    // Calculate sky colour
+    float4 finalColour = CalculateSkyColour(rd);
+
     Ray ray = RayMarch(ro, rd, renderSettings);
     if (ray.hit)
     {
@@ -250,9 +264,9 @@ PS_OUTPUT main(PS_INPUT Input) : SV_TARGET
         }
 
         // Choose colour based on if reflection ray hit
-        const float3 refCol = lerp(reflect(rd, ray.hitNormal) * .5 + .5, 
+        const float3 refCol = lerp(CalculateSkyColour(reflect(rd, ray.hitNormal)).rgb,
 							ObjectsList[refRay.hitIndex].Colour,
-							refRay.hit);
+							round(refRay.hit));
         
         output.ReflectionColDepth = float4(refCol * (0.2f + refLight), refRay.depth);
 

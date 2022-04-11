@@ -12,7 +12,7 @@ class CameraComponent : public Component
 
 public:
 	CameraComponent();
-	CameraComponent(float fov, float nearPlane, float farPlane);
+	CameraComponent(float fov);
 	CameraComponent(const CameraComponent&) = default;
 	CameraComponent(CameraComponent&&) = default;
 	CameraComponent& operator=(const CameraComponent&) = default;
@@ -24,18 +24,19 @@ public:
 	void RenderGUI() override;
 
 	[[nodiscard]] float GetFOV() const { return FOV; }
-	void SetFOV(float val) { FOV = val; }
+	void SetFOV(const float val) { FOV = val; }
 
 	[[nodiscard]] DirectX::SimpleMath::Matrix GetViewMatrix() const;
-
 
 protected:
 	[[nodiscard]] std::string GetComponentName() const override { return "Camera"; }
 
 private:
-	void CreateConstantBuffer();
+	void Initialise();
 
-	float FOV;
+	float FOV{ 0.0f };
 
-	Microsoft::WRL::ComPtr<ID3D11Buffer> ConstantBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> ConstantBuffer{};
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SkyboxSRV{};
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> LinearSampler{};
 };

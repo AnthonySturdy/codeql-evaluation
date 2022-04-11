@@ -42,6 +42,11 @@
     <ClInclude Include="Source\Game\Components\RayMarchLightComponent.h" />
     <ClInclude Include="Source\Game\Components\MaterialComponent.h" />
     <ClInclude Include="Source\Rendering\RenderPassReflections.h" />
+    <ClInclude Include="External\imgui\ImGuiFileDialog-0.6.4\dirent\dirent.h" />
+    <ClInclude Include="External\imgui\ImGuiFileDialog-0.6.4\stb\stb_image.h" />
+    <ClInclude Include="External\imgui\ImGuiFileDialog-0.6.4\stb\stb_image_resize.h" />
+    <ClInclude Include="External\imgui\ImGuiFileDialog-0.6.4\ImGuiFileDialog.h" />
+    <ClInclude Include="External\imgui\ImGuiFileDialog-0.6.4\ImGuiFileDialogConfig.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\pch.cpp" />
@@ -73,6 +78,7 @@
     <ClCompile Include="Source\Game\Components\RayMarchLightComponent.cpp" />
     <ClCompile Include="Source\Game\Components\MaterialComponent.cpp" />
     <ClCompile Include="Source\Rendering\RenderPassReflections.cpp" />
+    <ClCompile Include="External\imgui\ImGuiFileDialog-0.6.4\ImGuiFileDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
