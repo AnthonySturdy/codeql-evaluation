@@ -266,9 +266,9 @@ PS_OUTPUT main(PS_INPUT Input) : SV_TARGET
         // Choose colour based on if reflection ray hit
         const float3 refCol = lerp(CalculateSkyColour(reflect(rd, ray.hitNormal)).rgb,
 							ObjectsList[refRay.hitIndex].Colour,
-							round(refRay.hit));
+							refRay.hit);
         
-        output.ReflectionColDepth = float4(refCol * (0.2f + refLight), refRay.depth);
+        output.ReflectionColDepth = float4(refCol * lerp(float3(1, 1, 1), 0.2f + refLight, refRay.hit), refRay.depth);
 
         // Ambient Occlusion
         const float ao = 1.0f - float(ray.stepCount) / (renderSettings.maxSteps / renderSettings.AmbientOcclusionStrength);
