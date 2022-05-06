@@ -78,13 +78,10 @@ cbuffer RayMarchLights : register(b3)
 	} LightsList[RAYMARCH_MAX_LIGHTS];
 };
 
-struct SceneDistanceInfo
+float GetDistanceToScene(float3 p)
 {
-    float distance;
-    int index;
-};
-
-#include "GeneratedSceneDistance.hlsli"
+    return length(p) - 1.0f;
+}
 
 // Ray Marching
 struct Ray
@@ -92,7 +89,6 @@ struct Ray
     bool hit;
     float3 hitPosition;
     float3 hitNormal;
-    int hitIndex;
     float depth;
     uint stepCount;
 };
@@ -102,9 +98,9 @@ float3 CalculateNormal(float3 p)
     const float2 offset = float2(0.005f, 0.0f);
 
     int i = 0;
-    float3 normal = float3(GetDistanceToScene(p + offset.xyy).distance - GetDistanceToScene(p - offset.xyy).distance,
-                           GetDistanceToScene(p + offset.yxy).distance - GetDistanceToScene(p - offset.yxy).distance,
-                           GetDistanceToScene(p + offset.yyx).distance - GetDistanceToScene(p - offset.yyx).distance);
+    float3 normal = float3(GetDistanceToScene(p + offset.xyy) - GetDistanceToScene(p - offset.xyy),
+                           GetDistanceToScene(p + offset.yxy) - GetDistanceToScene(p - offset.yxy),
+                           GetDistanceToScene(p + offset.yyx) - GetDistanceToScene(p - offset.yyx));
 
     return normalize(normal);
 }
@@ -116,7 +112,6 @@ Ray RayMarch(float3 ro, float3 rd, RS rs)
     ray.hit = false;
     ray.hitPosition = float3(0.0f, 0.0f, 0.0f);
     ray.hitNormal = float3(0.0f, 0.0f, 0.0f);
-    ray.hitIndex = -1;
     ray.depth = 0.0f;
     ray.stepCount = 0;
     
@@ -124,21 +119,20 @@ Ray RayMarch(float3 ro, float3 rd, RS rs)
     [loop]
     for (; ray.stepCount < rs.maxSteps; ++ray.stepCount)
     {
-        SceneDistanceInfo distInfo = GetDistanceToScene(ro + rd * ray.depth);
+        float dist = GetDistanceToScene(ro + rd * ray.depth);
 
         // If distance less than threshold, ray has intersected
-        if (distInfo.distance < rs.intersectionThreshold)
+        if (dist < rs.intersectionThreshold)
         {
             ray.hit = true;
             ray.hitPosition = ro + rd * ray.depth;
             ray.hitNormal = CalculateNormal(ray.hitPosition);
-            ray.hitIndex = distInfo.index;
                     
             return ray;
         }
         
         // Increment total depth by distance to scene
-        ray.depth += distInfo.distance;
+        ray.depth += dist;
         if (ray.depth > rs.maxDist)
             break;
     }
@@ -150,28 +144,24 @@ float ShadowMarch(float3 ro, int lightIdx)
 {
     float result = 1.0f;
 
-    const float3 rd = normalize(LightsList[lightIdx].Position.xyz - ro);
+    const float3 rd = normalize(LightsList[lightIdx].Position.xyz);
 
     float depth = 0;
     [loop]
     for (int i = 0; i < renderSettings.maxSteps; ++i)
     {
         const float3 p = ro + rd * depth;
-        const SceneDistanceInfo distInfo = GetDistanceToScene(p);
-
-        // If ray is able to become close to light, there is no shadow.
-        if (dot(normalize(LightsList[lightIdx].Position.xyz - p), rd) < 0)
-            break;
+        const float distInfo = GetDistanceToScene(p);
 
         // If distance less than threshold, ray has intersected
-        if (distInfo.distance < renderSettings.intersectionThreshold)
+        if (distInfo < renderSettings.intersectionThreshold)
             return 0.0f;
 
         // Soft shadowing
-        result = min(result, LightsList[lightIdx].ShadowSharpness * distInfo.distance / depth);
+        result = min(result, LightsList[lightIdx].ShadowSharpness * distInfo / depth);
         
         // Increment total depth by distance to light
-        depth += distInfo.distance;
+        depth += distInfo;
         if (depth > renderSettings.maxDist)
             break;
     }
@@ -197,23 +187,20 @@ float3 CalculateLightColour(Ray ray)
     [unroll(RAYMARCH_MAX_LIGHTS)]
     for (int i = 0; i < RAYMARCH_MAX_LIGHTS; ++i)
     {
-        const float diffuse = CalculateDiffuse(ray.hitNormal, normalize(LightsList[i].Position.xyz - ray.hitPosition));
+        const float diffuse = CalculateDiffuse(ray.hitNormal, normalize(LightsList[i].Position.xyz));
 
         float specular = 0.0f;
         float shadowAmount = 1.0f;
         if (diffuse > 0.0f)
         {
             specular = CalculateSpecular(rd, 
-										reflect(ray.hitNormal, normalize(LightsList[i].Position.xyz - ray.hitPosition)), 
+										reflect(ray.hitNormal, normalize(LightsList[i].Position.xyz)), 
 										1.0f, 
-										(1.0f - ObjectsList[ray.hitIndex].Roughness) * 256.0f + 2.0f);
+										256.0f);
             shadowAmount = ShadowMarch(ray.hitPosition + ray.hitNormal * renderSettings.intersectionThreshold * 2.0f, i);
         }
 
-        const float d = distance(ray.hitPosition, LightsList[i].Position.xyz);
-        const float attentuation = 1.0f / (LightsList[i].ConstantAttenuation + LightsList[i].LinearAttenuation * d + LightsList[i].QuadraticAttenuation * d * d);
-
-        lightCol += LightsList[i].Colour * ((diffuse * shadowAmount + specular) * attentuation);
+        lightCol += LightsList[i].Colour * (diffuse * shadowAmount + specular);
     }
 
     return lightCol;
@@ -248,36 +235,16 @@ PS_OUTPUT main(PS_INPUT Input) : SV_TARGET
     if (ray.hit)
     {
         const float3 lightCol = CalculateLightColour(ray);
-
-        // Reflection
-        RS rs = renderSettings; // render settings with lower fidelity
-        rs.intersectionThreshold * 5.0f;
-        rs.maxSteps /= 2;
-
-        Ray refRay; // reflection ray
-        refRay.hit = false;
-        float3 refLight = float3(0.8f, 0.8f, 0.8f);
-        if (ObjectsList[ray.hitIndex].Metalicness)
-        {
-            refRay = RayMarch(ray.hitPosition + (ray.hitNormal * rs.intersectionThreshold * 2.0f), reflect(rd, ray.hitNormal), rs);
-            refLight = CalculateLightColour(refRay);
-        }
-
-        // Choose colour based on if reflection ray hit
-        const float3 refCol = lerp(CalculateSkyColour(reflect(rd, ray.hitNormal)).rgb,
-							ObjectsList[refRay.hitIndex].Colour,
-							refRay.hit);
         
-        output.ReflectionColDepth = float4(refCol * lerp(float3(1, 1, 1), 0.2f + refLight, refRay.hit), refRay.depth);
-
         // Ambient Occlusion
         const float ao = 1.0f - float(ray.stepCount) / (renderSettings.maxSteps / renderSettings.AmbientOcclusionStrength);
 
-        finalColour = float4((ObjectsList[ray.hitIndex].Colour * (0.2f + lightCol) * ao), 1.0f);
+        finalColour = float4((0.2f + lightCol) * ao, 1.0f);
     }
 
     output.Colour = finalColour;
+    output.ReflectionColDepth = float4(0.0f, 0.0f, 0.0f, 0.0f);
     output.NormDepth = float4(ray.hitNormal * .5 + .5, ray.depth / renderSettings.maxDist);
-    output.MetalicnessRoughness = float2(ObjectsList[ray.hitIndex].Metalicness, ObjectsList[ray.hitIndex].Roughness);
+    output.MetalicnessRoughness = float2(0.0f, 0.0f);
     return output;
 }
