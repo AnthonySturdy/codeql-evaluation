@@ -78,9 +78,42 @@ cbuffer RayMarchLights : register(b3)
 	} LightsList[RAYMARCH_MAX_LIGHTS];
 };
 
+/////////////////
+// SCENE DISTANCE
+/////////////////
+
+float hash(float n)
+{
+    return frac(sin(n) * 43758.5453);
+}
+
+float noise(float3 x)
+{
+    // The noise function returns a value in the range -1.0f -> 1.0f
+
+    float3 p = floor(x);
+    float3 f = frac(x);
+
+    f = f * f * (3.0 - 2.0 * f);
+    float n = p.x + p.y * 57.0 + 113.0 * p.z;
+
+    return lerp(lerp(lerp(hash(n + 0.0), hash(n + 1.0), f.x),
+                   lerp(hash(n + 57.0), hash(n + 58.0), f.x), f.y),
+               lerp(lerp(hash(n + 113.0), hash(n + 114.0), f.x),
+                   lerp(hash(n + 170.0), hash(n + 171.0), f.x), f.y), f.z);
+}
+
 float GetDistanceToScene(float3 p)
 {
-    return length(p) - 1.0f;
+    const float3 offset = float3(360, 0, 1800);
+    p += offset;
+    float h = noise(float3(p.x / 300, 0.0f, p.z / 300)) * 250;
+    h += noise(float3(p.x / 200, 0.0f, p.z / 200)) * 70;
+    h += noise(float3(p.x / 150, 0.0f, p.z / 150)) * 50;
+
+    h += noise(float3(p.x / 40, 0.0f, p.z / 40)) * 10;
+
+    return p.y + h - 100.0f;
 }
 
 // Ray Marching
@@ -122,7 +155,7 @@ Ray RayMarch(float3 ro, float3 rd, RS rs)
         float dist = GetDistanceToScene(ro + rd * ray.depth);
 
         // If distance less than threshold, ray has intersected
-        if (dist < rs.intersectionThreshold)
+        if (abs(dist) < rs.intersectionThreshold)
         {
             ray.hit = true;
             ray.hitPosition = ro + rd * ray.depth;
@@ -140,11 +173,11 @@ Ray RayMarch(float3 ro, float3 rd, RS rs)
     return ray;
 }
 
-float ShadowMarch(float3 ro, int lightIdx)
+float ShadowMarch(float3 ro, float3 lightDir)
 {
     float result = 1.0f;
 
-    const float3 rd = normalize(LightsList[lightIdx].Position.xyz);
+    const float3 rd = normalize(lightDir);
 
     float depth = 0;
     [loop]
@@ -158,7 +191,7 @@ float ShadowMarch(float3 ro, int lightIdx)
             return 0.0f;
 
         // Soft shadowing
-        result = min(result, LightsList[lightIdx].ShadowSharpness * distInfo / depth);
+        result = min(result, 200.0f * distInfo / depth);
         
         // Increment total depth by distance to light
         depth += distInfo;
@@ -184,24 +217,22 @@ float3 CalculateLightColour(Ray ray)
     float3 lightCol = float3(0.0f, 0.0f, 0.0f);
     const float3 rd = normalize(ray.hitPosition - camera.position);
 
-    [unroll(RAYMARCH_MAX_LIGHTS)]
-    for (int i = 0; i < RAYMARCH_MAX_LIGHTS; ++i)
+    const float3 lightDir = float3(0.8f, 0.5f, -0.7f);
+
+    const float diffuse = CalculateDiffuse(ray.hitNormal, normalize(lightDir));
+
+    float specular = 0.0f;
+    float shadowAmount = 1.0f;
+    if (diffuse > 0.0f)
     {
-        const float diffuse = CalculateDiffuse(ray.hitNormal, normalize(LightsList[i].Position.xyz));
-
-        float specular = 0.0f;
-        float shadowAmount = 1.0f;
-        if (diffuse > 0.0f)
-        {
-            specular = CalculateSpecular(rd, 
-										reflect(ray.hitNormal, normalize(LightsList[i].Position.xyz)), 
-										1.0f, 
-										256.0f);
-            shadowAmount = ShadowMarch(ray.hitPosition + ray.hitNormal * renderSettings.intersectionThreshold * 2.0f, i);
-        }
-
-        lightCol += LightsList[i].Colour * (diffuse * shadowAmount + specular);
+        specular = CalculateSpecular(rd, 
+									reflect(ray.hitNormal, normalize(lightDir)),
+									1.0f, 
+									256.0f);
+        shadowAmount = ShadowMarch(ray.hitPosition + ray.hitNormal * renderSettings.intersectionThreshold * 2.0f, lightDir);
     }
+
+    lightCol += LightsList[0].Colour * (diffuse * shadowAmount + specular);
 
     return lightCol;
 }

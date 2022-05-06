@@ -11,9 +11,9 @@ class RayMarchingManagerComponent : public Component
 	{
 		unsigned int Resolution[2]{ 0u, 0u };
 		unsigned int MaxSteps{ 300u };
-		float MaxDist{ 500.0f };
+		float MaxDist{ 3000.0f };
 		float IntersectionThreshold{ 0.01f };
-		float AmbientOcclusionStrength{ 3.0f };
+		float AmbientOcclusionStrength{ 0.0f };
 
 		float PADDING[2]{};
 	};
