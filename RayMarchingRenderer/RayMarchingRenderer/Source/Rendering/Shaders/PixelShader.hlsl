@@ -78,6 +78,15 @@ cbuffer RayMarchLights : register(b3)
 	} LightsList[RAYMARCH_MAX_LIGHTS];
 };
 
+struct Ray
+{
+    bool hit;
+    float3 hitPosition;
+    float3 hitNormal;
+    float depth;
+    uint stepCount;
+};
+
 /////////////////
 // SCENE DISTANCE
 /////////////////
@@ -103,7 +112,7 @@ float noise(float3 x)
                    lerp(hash(n + 170.0), hash(n + 171.0), f.x), f.y), f.z);
 }
 
-float GetDistanceToScene(float3 p)
+float GetTerrainHeight(float3 p)
 {
     const float3 offset = float3(360, 0, 1800);
     p += offset;
@@ -113,30 +122,60 @@ float GetDistanceToScene(float3 p)
 
     h += noise(float3(p.x / 40, 0.0f, p.z / 40)) * 10;
 
+    //return sin(p.x);
     return p.y + h - 100.0f;
 }
-
-// Ray Marching
-struct Ray
-{
-    bool hit;
-    float3 hitPosition;
-    float3 hitNormal;
-    float depth;
-    uint stepCount;
-};
 
 float3 CalculateNormal(float3 p)
 {
     const float2 offset = float2(0.005f, 0.0f);
 
     int i = 0;
-    float3 normal = float3(GetDistanceToScene(p + offset.xyy) - GetDistanceToScene(p - offset.xyy),
-                           GetDistanceToScene(p + offset.yxy) - GetDistanceToScene(p - offset.yxy),
-                           GetDistanceToScene(p + offset.yyx) - GetDistanceToScene(p - offset.yyx));
+    float3 normal = float3(GetTerrainHeight(p + offset.xyy) - GetTerrainHeight(p - offset.xyy),
+                           GetTerrainHeight(p + offset.yxy) - GetTerrainHeight(p - offset.yxy),
+                           GetTerrainHeight(p + offset.yyx) - GetTerrainHeight(p - offset.yyx));
 
     return normalize(normal);
 }
+
+Ray RayMarchTerrain(float3 ro, float3 rd)
+{
+	// Initialise ray
+    Ray ray;
+    ray.hit = false;
+    ray.hitPosition = float3(0.0f, 0.0f, 0.0f);
+    ray.hitNormal = float3(0.0f, 0.0f, 0.0f);
+    ray.depth = 0.1f;
+    ray.stepCount = 0;
+
+    float dt = 0.1f;
+
+    [loop]
+    for (float t = 0.001f; t < renderSettings.maxDist; t += dt)
+    {
+        float3 p = ro + rd * t;
+
+        // If distance less than threshold, ray has intersected
+        if (p.y < GetTerrainHeight(p) * 0.001f)
+        {
+            ray.hit = true;
+            ray.hitPosition = p;
+            ray.hitNormal = CalculateNormal(p);
+            ray.depth = t;
+                    
+            return ray;
+        }
+
+        dt = 0.1f * t;
+
+        // Increment total depth by distance to scene
+        //if (ray.depth > renderSettings.maxDist)
+        //    break;
+    }
+
+    return ray;
+}
+
 
 Ray RayMarch(float3 ro, float3 rd, RS rs)
 {
@@ -152,7 +191,7 @@ Ray RayMarch(float3 ro, float3 rd, RS rs)
     [loop]
     for (; ray.stepCount < rs.maxSteps; ++ray.stepCount)
     {
-        float dist = GetDistanceToScene(ro + rd * ray.depth);
+        float dist = GetTerrainHeight(ro + rd * ray.depth);
 
         // If distance less than threshold, ray has intersected
         if (abs(dist) < rs.intersectionThreshold)
@@ -184,7 +223,7 @@ float ShadowMarch(float3 ro, float3 lightDir)
     for (int i = 0; i < renderSettings.maxSteps; ++i)
     {
         const float3 p = ro + rd * depth;
-        const float distInfo = GetDistanceToScene(p);
+        const float distInfo = GetTerrainHeight(p);
 
         // If distance less than threshold, ray has intersected
         if (distInfo < renderSettings.intersectionThreshold)
@@ -262,15 +301,15 @@ PS_OUTPUT main(PS_INPUT Input) : SV_TARGET
     // Calculate sky colour
     float4 finalColour = CalculateSkyColour(rd);
 
-    Ray ray = RayMarch(ro, rd, renderSettings);
+    Ray ray = RayMarchTerrain(ro, rd);
     if (ray.hit)
     {
         const float3 lightCol = CalculateLightColour(ray);
         
         // Ambient Occlusion
         const float ao = 1.0f - float(ray.stepCount) / (renderSettings.maxSteps / renderSettings.AmbientOcclusionStrength);
-
-        finalColour = float4((0.2f + lightCol) * ao, 1.0f);
+        
+        finalColour = float4((0.2f + ray.hitPosition) * ao, 1.0f);
     }
 
     output.Colour = finalColour;
