@@ -1,0 +1,26 @@
+// Mandelbulb
+float3 c = float3(4.0f, 4.0f, 4.0f);
+float3 z = p;
+float r = 0;
+float dr = 1;
+for(int i = 0; i < 5; i++) 
+{
+    r = length(z);
+    if(r > 100) break;
+    
+    float theta = acos(z.z / r);
+    float phi = atan2(z.y, z.x);
+    
+    dr = param.x * pow(r, param.x-1)*dr+1;
+    
+    r = pow(r, param.x);
+    theta *= param.x;
+    phi *= param.x;
+    
+    z = r * float3(sin(theta) * cos(phi), 
+            sin(theta) * sin(phi), 
+            cos(theta));
+
+    z += p;
+}
+return 0.5 * log(r) * r / dr;
