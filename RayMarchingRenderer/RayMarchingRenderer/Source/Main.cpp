@@ -40,7 +40,23 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	int x;
 
 	if (!XMVerifyCPUSupport())
+	{
+		// Attempting to make a defect which CodeQL will find
+
+		int* abc = nullptr;
+		*abc++;
+
+		if (false)
+		{
+			int y = 1234;
+			++y;
+			x = y;
+			*abc = x;
+		}
+
+
 		return x;
+	}
 
 	HRESULT hr = CoInitializeEx(nullptr, COINITBASE_MULTITHREADED);
 	if (FAILED(hr))
