@@ -37,8 +37,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
+	int x;
+
 	if (!XMVerifyCPUSupport())
-		return 1;
+		return x;
 
 	HRESULT hr = CoInitializeEx(nullptr, COINITBASE_MULTITHREADED);
 	if (FAILED(hr))
