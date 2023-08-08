@@ -1,3 +1,5 @@
+# This repo is a clone of https://github.com/AnthonySturdy/Games-Technology-Research-Project
+# The purpose of this repository is so we can evaluate CodeQL as a static analysis solution
 ### Utilising Ray Marching and Signed Distance Functions to Render a Scene of Primitives
 A ray marched rendering engine developed for the final year "Games Technology Research Project" module, also referred to as a Final Year Project. The research and development of this artefact, along with the report, spanned across the majority of the final year of University.
 
