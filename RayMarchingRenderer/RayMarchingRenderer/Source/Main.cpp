@@ -37,24 +37,18 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	int x;
+	// Attempting to make a defect which CodeQL will find
 
+	long* abc = nullptr;
+	*abc++;
+
+	int y;
+	++y;
+	*abc = static_cast<unsigned int>(y);
+
+	int x;
 	if (!XMVerifyCPUSupport())
 	{
-		// Attempting to make a defect which CodeQL will find
-
-		int* abc = nullptr;
-		*abc++;
-
-		if (false)
-		{
-			int y = 1234;
-			++y;
-			x = y;
-			*abc = x;
-		}
-
-
 		return x;
 	}
 
